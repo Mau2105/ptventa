@@ -24,6 +24,7 @@ return [
     '8T_Sale'       => '$ Sale',
     '9T_Stocks'     => 'Stocks',
     '10T_Destination' => 'Destination',
+    '9T_Action'       => 'Action',
 
     // ---Section Register Inventory---
     // Card Responsibles and Warehouses

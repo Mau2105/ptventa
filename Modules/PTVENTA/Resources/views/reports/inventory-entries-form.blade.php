@@ -18,7 +18,7 @@
                 <div class="col-md-12">
                     <div class="row mb-3">
                         <div class="col-md-auto">
-                            <form class="form-inline" action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.inventory.entries') }}"
+                            <form class="form-inline" action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.inventory.entries.generate') }}"
                                 method="POST">
                                 @csrf
                                 <div class="form-group mr-5">
@@ -31,7 +31,7 @@
                                     <input type="date" class="form-control" name="end_date" id="end_date"
                                         value="{{ $end_date }}" required>
                                 </div>
-                                @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.inventory.entries'))
+                                @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.inventory.entries.generate'))
                                     <button type="submit" class="btn btn-primary">
                                         {{ trans('ptventa::reports.Btn_Search') }}
                                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -40,8 +40,8 @@
                             </form>
                         </div>
                         <div class="col-md">
-                            @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.entries.pdf'))
-                                <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.entries.pdf') }}" method="post">
+                            @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.inventory.entries.pdf'))
+                                <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.inventory.entries.pdf') }}" method="post">
                                     @csrf
                                     <input type="hidden" name="start_date" value="{{ $start_date }}">
                                     <input type="hidden" name="end_date" value="{{ $end_date }}">

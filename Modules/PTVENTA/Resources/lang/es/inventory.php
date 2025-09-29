@@ -23,7 +23,8 @@ return [
     '7T_Amount'       => 'Cantidad',
     '8T_Sale'         => '$ Venta',
     '9T_Stocks'       => 'Existencias',
-    '10T_Destination' => 'Destination',
+    '10T_Destination' => 'Destinario',
+    '9T_Action'       => 'Accción',
 
     // ---Section Register Inventory---
     // Card Responsibles and Warehouses

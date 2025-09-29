@@ -22,6 +22,8 @@ return [
     // ---Section Report Inventory Entries---
     'Title_Form_Start_Date' => 'Fecha de Inicio:',
     'Title_Form_End_Date'   => 'Fecha Final:',
+    'Title_Sales_Detailed'  => 'Ventas Detalladas',
+    'Title_Products_Sold'   => 'Productos Vendidos',
     // Table With Result Search
     '1T_Number'               => 'N°',
     '1T_Voucher'              => 'N° Comprobante',

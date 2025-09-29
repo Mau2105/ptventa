@@ -542,6 +542,25 @@ class PermissionsTableSeeder extends Seeder
         ]);
         $permissions_cashier[] = $permission->id; // Almacenar permiso para rol
 
+        // Generar PDF de productos vendidos (Administrador)
+$permission = Permission::updateOrCreate(['slug' => 'ptventa.admin.reports.generate.products.pdf'], [ 
+    'name' => 'Generar PDF de productos vendidos (Administrador)',
+    'description' => 'Genera un PDF con los productos vendidos agrupados por cantidad y precio',
+    'description_english' => 'Generate PDF of products sold grouped by quantity and price',
+    'app_id' => $app->id
+]);
+$permissions_admin[] = $permission->id;
+
+// Generar PDF de productos vendidos (Cajero)
+$permission = Permission::updateOrCreate(['slug' => 'ptventa.cashier.reports.generate.products.pdf'], [ 
+    'name' => 'Generar PDF de productos vendidos (Cajero)',
+    'description' => 'Genera un PDF con los productos vendidos agrupados por cantidad y precio',
+    'description_english' => 'Generate PDF of products sold grouped by quantity and price',
+    'app_id' => $app->id
+]);
+$permissions_cashier[] = $permission->id;
+
+
 
         // Consulta de ROLES
         $rol_admin = Role::where('slug', 'ptventa.admin')->first(); // Rol Administrador

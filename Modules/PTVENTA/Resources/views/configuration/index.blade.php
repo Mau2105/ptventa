@@ -4,7 +4,7 @@
 @endpush
 
 @push('breadcrumbs')
-    <li class="breadcrumb-item active">{{ trans('ptventa::configuration.Breadcrumb_Active_configuration') }}</li>
+    <li class="breadcrumb-item active">{{ trans('ptventa::configuration.Breadcrumb_Active_Configuration') }}</li>
 @endpush
 
 @section('content')

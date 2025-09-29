@@ -17,6 +17,7 @@ return [
     '1T_State'   => 'State',
     '1T_Value'   => 'Value',
     '1T_Total'   => 'Total sales:',
+    '1T_Products'=> 'Product',
 
     // Section Btns
     'Btn_Register_Sale'   => 'Register Sale',
@@ -24,6 +25,7 @@ return [
     'Btn_Cancel_Register' => 'Cancel',
     'Btn_Generate_Ticket' => 'Generate Ticket',
     'Btn_Accept'          => 'Accept',
+    'Btn_Add_Product'     => 'Add',
     
     //Section optional text
     'Text_Optional_1'   => 'No Sales Registered.',
@@ -78,6 +80,8 @@ return [
 	'Form_Title_Customer'      => 'Customer:',
 	'Form_Title_Client'        => 'Client:',
 	'Form_Title_Movement_Type' => 'Movement Type:',
+    'Text_No_Products_Selected' => 'No products have been selected',
+    'Form_Title_Seller'       => 'User',
     // Table Show Movement Sales
     '3T_Number'   => '#',
     '3T_Product'  => 'Product',

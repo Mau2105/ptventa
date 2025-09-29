@@ -12,7 +12,7 @@
             <div class="user-panel mt-3 pb-3 mb-1 d-flex">
                 <div class="image">
                     @if (isset(Auth::user()->person->avatar))
-                        <img src="{{ asset('storage/' . Auth::user()->person->avatar) }}"class="img-circle elevation-2" alt="User Image">
+                        <img src="{{ asset('storage/' . Auth::user()->person->avatar) }}" class="img-circle elevation-2" alt="User Image">
                     @else
                         <img src="{{ asset('modules/sica/images/blanco.png') }}" class="img-circle elevation-2" alt="User Image">
                     @endif
@@ -210,13 +210,13 @@
                             </li>
                         @endif
                         @if(Auth::user()->havePermission('ptventa.cashier.movements.index'))
-                        <li class="nav-item">
-                            <a href="{{ route('ptventa.cashier.movements.index') }}"
-                                class="nav-link {{ !Route::is('ptventa.cashier.movements.*') ?: 'active' }}">
-                                <i class="nav-icon fa-solid fa-file-invoice-dollar"></i>
-                                <p>{{ trans('ptventa::general.Movement History') }}</p>
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a href="{{ route('ptventa.cashier.movements.index') }}"
+                                    class="nav-link {{ !Route::is('ptventa.cashier.movements.*') ?: 'active' }}">
+                                    <i class="nav-icon fa-solid fa-file-invoice-dollar"></i>
+                                    <p>{{ trans('ptventa::general.Movement History') }}</p>
+                                </a>
+                            </li>
                         @endif
                         @if(Auth::user()->havePermission('ptventa.cashier.configuration.index'))
                             <li class="nav-item">
@@ -228,7 +228,6 @@
                             </li>
                         @endif
                     @endif
-
                 </ul>
             </nav>
             <!-- /.sidebar-menu -->

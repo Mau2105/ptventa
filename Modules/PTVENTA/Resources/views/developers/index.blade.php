@@ -71,6 +71,28 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-lg-3 mb-4" data-aos="zoom-in">
+    <img class="bd-placeholder-img rounded-circle" src="{{ asset('modules/ptventa/images/developers/Mauro-Profile.webp') }}" alt="MauroProfile" width="140" height="140">
+    <h4>{{ trans('ptventa::devs.Description_Apprentice') }}</h4>
+    <p>Mauro Suárez Ariaz</p>
+    <a class="btn btn-primary" href="https://www.linkedin.com/in/mauro-suarez-ariaz/">
+        <i class="fab fa-linkedin-in"></i>
+    </a>
+    <a class="btn btn-dark" href="https://github.com/Mau2105">
+        <i class="fab fa-github"></i>
+    </a>
+    <a class="btn btn-primary" href="https://www.facebook.com/mauro.suarez.ariaz">
+        <i class="fab fa-facebook"></i>
+    </a>
+    <a class="btn btn-info custom-instagram-btn" href="https://www.instagram.com/tu_usuario">
+        <i class="fa-brands fa-instagram"></i>
+    </a>
+    <a class="btn btn-info custom-twitter-btn" href="https://twitter.com/tu_usuario">
+        <i class="fa-brands fa-twitter"></i>
+    </a>
+</div>
+
                     <br>
                     <div class="d-flex justify-content-center">
                         <a class="btn" id="scrollButton">

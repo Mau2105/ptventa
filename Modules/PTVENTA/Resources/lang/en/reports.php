@@ -22,6 +22,8 @@ return [
     // ---Section Report Inventory Entries---
     'Title_Form_Start_Date' => 'Start Date:',
     'Title_Form_End_Date'   => 'End Date:',
+    'Title_Sales_Detailed'  => 'Detailed Sales',
+    'Title_Products_Sold'   => 'Products Sold',
     // Table With Result Search
     '2T_Number'               => '#',
     '2T_Voucher'              => '# Voucher',

@@ -58,43 +58,71 @@
                             <th class="text-center">{{ trans('ptventa::inventory.7T_Amount') }}</th>
                             <th class="text-center">{{ trans('ptventa::inventory.8T_Sale') }}</th>
                             <th class="text-center">{{ trans('ptventa::inventory.9T_Stocks') }}</th>
+                            <th class="text-center">{{ trans('ptventa::inventory.9T_Action')  }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($groupedInventories as $group)
                             @php
-                                $firstRecord = $group->first();
-                                $rowspan = $group->count();
+                                $firstRecord = $group->sortByDesc('updated_at')->first();
+                                $others = $group->where('id','!=',$firstRecord->id);
+                                $collapseId = 'details-'.$firstRecord->element_id;
                             @endphp
                             <tr>
-                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
-                                    {{ $loop->iteration }}</td>
-                                <td rowspan="{{ $rowspan }}" class="border-secondary align-middle">
-                                    <strong>{{ $firstRecord->element->name }}</strong>
-                                </td>
-                                <td class="text-center border-secondary">{{ $firstRecord->destination }}</td>
-                                <td class="text-center border-secondary">{{ $firstRecord->lot_number }}</td>
-                                <td class="text-center border-secondary">{{ $firstRecord->production_date }}</td>
-                                <td class="text-center border-secondary">{{ $firstRecord->expiration_date }}</td>
-                                <td class="text-center border-secondary">{{ priceFormat($firstRecord->price) }}</td>
-                                <td class="text-center border-secondary">{{ $firstRecord->amount }}</td>
-                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
-                                    <strong>{{ priceFormat($firstRecord->element->price) }}</strong>
-                                </td>
-                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
-                                    <strong>{{ $group->sum('amount') }}</strong>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td><strong>{{ $firstRecord->element->name }}</strong></td>
+                                <td class="text-center">{{ $firstRecord->destination }}</td>
+                                <td class="text-center">{{ $firstRecord->lot_number }}</td>
+                                <td class="text-center">{{ $firstRecord->production_date }}</td>
+                                <td class="text-center">{{ $firstRecord->expiration_date }}</td>
+                                <td class="text-center">{{ priceFormat($firstRecord->price) }}</td>
+                                <td class="text-center">{{ $firstRecord->amount }}</td>
+                                <td class="text-center"><strong>{{ priceFormat($firstRecord->element->price) }}</strong></td>
+                                <td class="text-center"><strong>{{ $group->sum('amount') }}</strong></td>
+                                <td class="text-center">
+                                    @if ($others->isNotEmpty())
+                                        <button class="btn btn-info btn-sm" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
+                                            Ver más
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
-                            @foreach ($group->slice(1) as $record)
+
+                            @if ($others->isNotEmpty())
                                 <tr>
-                                    <td class="text-center border-secondary">{{ $record->destination }}</td>
-                                    <td class="text-center border-secondary">{{ $record->lot_number }}</td>
-                                    <td class="text-center border-secondary">{{ $record->production_date }}</td>
-                                    <td class="text-center border-secondary">{{ $record->expiration_date }}</td>
-                                    <td class="text-center border-secondary">{{ priceFormat($record->price) }}</td>
-                                    <td class="text-center border-secondary">{{ $record->amount }}</td>
+                                    <td colspan="11" class="p-0 border-0">
+                                        <div class="collapse" id="{{ $collapseId }}">
+                                            <div class="p-2">
+                                                <table class="table table-sm table-bordered mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th class="text-center">Destino</th>
+                                                            <th class="text-center">N° Lote</th>
+                                                            <th class="text-center">Producción</th>
+                                                            <th class="text-center">Vencimiento</th>
+                                                            <th class="text-center">Precio</th>
+                                                            <th class="text-center">Cantidad</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($others as $record)
+                                                            <tr>
+                                                                <td class="text-center">{{ $record->destination }}</td>
+                                                                <td class="text-center">{{ $record->lot_number }}</td>
+                                                                <td class="text-center">{{ $record->production_date }}</td>
+                                                                <td class="text-center">{{ $record->expiration_date }}</td>
+                                                                <td class="text-center">{{ priceFormat($record->price) }}</td>
+                                                                <td class="text-center">{{ $record->amount }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
-                            @endforeach
+                            @endif
                         @endforeach
                     </tbody>
                 </table>

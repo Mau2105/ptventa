@@ -259,3 +259,37 @@ const ConectorPluginV3 = (() => {
     }
     return ConectorPlugin;
 })();
+
+async function print_sale(movement) {
+    const conector = new ConectorPluginV3();
+    conector.Iniciar();
+    conector.EstablecerAlineacion(ConectorPluginV3.ALINEACION_CENTRO);
+    conector.EscribirTexto("Centro de Formación Agroindustrial 'La Angostura'\n");
+    conector.EscribirTexto("Campoalegre - Huila\n");
+    conector.EscribirTexto("Factura de Venta #" + movement.voucher_number + "\n");
+    conector.EscribirTexto("Fecha: " + movement.registration_date + "\n");
+    conector.Feed(1);
+
+    conector.EstablecerAlineacion(ConectorPluginV3.ALINEACION_IZQUIERDA);
+    conector.EscribirTexto("Vendedor: " + movement.movement_responsibilities.find(r => r.role === 'VENDEDOR').person.full_name + "\n");
+    conector.EscribirTexto("Cliente: " + movement.movement_responsibilities.find(r => r.role === 'CLIENTE').person.full_name + "\n");
+    conector.Feed(1);
+
+    conector.EscribirTexto("Producto\tCant.\tPrecio\tSubtotal\n");
+    movement.movement_details.forEach(detail => {
+        const element = detail.inventory.element;
+        conector.EscribirTexto(element.name.substring(0, 10) + "\t" + detail.amount + "\t" + priceFormat(detail.price) + "\t" + priceFormat(detail.amount * detail.price) + "\n");
+    });
+
+    conector.Feed(1);
+    conector.EstablecerAlineacion(ConectorPluginV3.ALINEACION_DERECHA);
+    conector.EscribirTexto("Total: " + priceFormat(movement.price) + "\n");
+    conector.Feed(2);
+    conector.Corte(1);
+
+    // Replace 'POS-80C' with your shared printer name
+    const respuesta = await conector.imprimirEn('POS-80C');
+    if (respuesta.ok === false) {
+        throw new Error(respuesta.message || 'Impresión fallida');
+    }
+}

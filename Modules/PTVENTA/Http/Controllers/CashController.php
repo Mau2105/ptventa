@@ -67,17 +67,7 @@ class CashController extends Controller
 
             $cashCount->save();
 
-            $app_puw = PUW::getAppPuw(); // Obtner la unidad productiva y bodega de la aplicación
-            CashCount::create([
-                'person_id' => Auth::user()->person_id,
-                'productive_unit_warehouse_id' =>  $app_puw->id,
-                'opening_date' => Carbon::now(),
-                'initial_balance' => 0,
-                'final_balance' => null,
-                'closing_date' => null,
-                'total_sales' => null,
-                'state' => 'Abierta',
-            ]);
+
 
             DB::commit(); // Confirmar cambios realizados durante la transacción
 

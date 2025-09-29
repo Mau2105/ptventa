@@ -17,6 +17,7 @@ return [
     '1T_State'   => 'Estado',
     '1T_Value'   => 'Valor',
     '1T_Total'   => 'Total de ventas:',
+	'1T_Products'=> 'Producto',
     
     // Section Btns
     'Btn_Register_Sale'   => 'Registrar Venta',
@@ -24,6 +25,7 @@ return [
     'Btn_Cancel_Register' => 'Cancelar',
     'Btn_Generate_Ticket' => 'Generar Factura',
     'Btn_Accept'          => 'Aceptar',
+	'Btn_Add_Product'     => 'Agregar',
     
 	// Section optional text
 	'Text_Optional_1' => 'No hay ventas registradas.',
@@ -44,6 +46,7 @@ return [
 	'2T_Value'   => 'Valor',
 	'2T_Total'   => 'Total',
 	'2T_Actions' => 'Acciones',
+	'Text_No_Products_Selected' => 'No se han seleccionado productos',
 	
 	// Tooltips
 	'Tooltip1' => 'Actualizar Producto',
@@ -78,6 +81,7 @@ return [
 	'Form_Title_Customer'      => 'Vendedor:',
 	'Form_Title_Client'        => 'Cliente:',
 	'Form_Title_Movement_Type' => 'Tipo de Movimiento:',
+	'Form_Title_Seller'       => 'Usuario',
 	// Table Show Movement Sales
 	'3T_Number'   => 'N°',
 	'3T_Product'  => 'Producto',
