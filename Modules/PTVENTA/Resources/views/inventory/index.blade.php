@@ -58,15 +58,12 @@
                             <th class="text-center">{{ trans('ptventa::inventory.7T_Amount') }}</th>
                             <th class="text-center">{{ trans('ptventa::inventory.8T_Sale') }}</th>
                             <th class="text-center">{{ trans('ptventa::inventory.9T_Stocks') }}</th>
-                            <th class="text-center">{{ trans('ptventa::inventory.9T_Action')  }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($groupedInventories as $group)
                             @php
                                 $firstRecord = $group->sortByDesc('updated_at')->first();
-                                $others = $group->where('id','!=',$firstRecord->id);
-                                $collapseId = 'details-'.$firstRecord->element_id;
                             @endphp
                             <tr>
                                 <td class="text-center">{{ $loop->iteration }}</td>
@@ -79,50 +76,7 @@
                                 <td class="text-center">{{ $firstRecord->amount }}</td>
                                 <td class="text-center"><strong>{{ priceFormat($firstRecord->element->price) }}</strong></td>
                                 <td class="text-center"><strong>{{ $group->sum('amount') }}</strong></td>
-                                <td class="text-center">
-                                    @if ($others->isNotEmpty())
-                                        <button class="btn btn-info btn-sm" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
-                                            Ver más
-                                        </button>
-                                    @endif
-                                </td>
                             </tr>
-
-                            @if ($others->isNotEmpty())
-                                <tr>
-                                    <td colspan="11" class="p-0 border-0">
-                                        <div class="collapse" id="{{ $collapseId }}">
-                                            <div class="p-2">
-                                                <table class="table table-sm table-bordered mb-0">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th class="text-center">Destino</th>
-                                                            <th class="text-center">N° Lote</th>
-                                                            <th class="text-center">Producción</th>
-                                                            <th class="text-center">Vencimiento</th>
-                                                            <th class="text-center">Precio</th>
-                                                            <th class="text-center">Cantidad</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($others as $record)
-                                                            <tr>
-                                                                <td class="text-center">{{ $record->destination }}</td>
-                                                                <td class="text-center">{{ $record->lot_number }}</td>
-                                                                <td class="text-center">{{ $record->production_date }}</td>
-                                                                <td class="text-center">{{ $record->expiration_date }}</td>
-                                                                <td class="text-center">{{ priceFormat($record->price) }}</td>
-                                                                <td class="text-center">{{ $record->amount }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endif
                         @endforeach
                     </tbody>
                 </table>

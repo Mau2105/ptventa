@@ -26,52 +26,61 @@
                 @if ($sales->count())
                     <div class="table-responsive">
                         <table class="table table-hover" id="sales-table">
-<thead class="table-dark">
-<tr>
-    <th class="text-center">#</th>
-    <th class="text-center">{{ trans('ptventa::sales.1T_Voucher') }}</th>
-    <th>{{ trans('ptventa::sales.1T_Client') }}</th>
-    <th class="text-center">{{ trans('ptventa::sales.1T_Date') }}</th>
-    <th class="text-center">{{ trans('ptventa::sales.1T_Products') }}</th>
-    <th class="text-center">{{ trans('ptventa::sales.1T_State') }}</th>
-    <th class="text-center">{{ trans('ptventa::sales.1T_Value') }}</th>
-    <th class="text-center">Acción</th> {{-- NUEVA --}}
-</tr>
-</thead>
-<tbody>
-@foreach ($sales as $s)
-<tr>
-    <td class="text-center">{{ $loop->iteration }}</td>
-    <td class="text-center">{{ $s->voucher_number }}</td>
-    <td>{{ $s->movement_responsibilities->where('role', 'CLIENTE')->first()->person->full_name ?? 'N/A' }}</td>
-    <td class="text-center">{{ $s->registration_date }}</td>
-    <td>
-        <ul class="mb-0 ps-3">
-            @foreach ($s->movement_details as $detail)
-                <li>
-                    {{ $detail->inventory->element->product_name }}
-                    <strong> (x{{ $detail->amount }})</strong>
-                </li>
-            @endforeach
-        </ul>
-    </td>
-    <td class="text-center">
-        <span class="badge bg-{{ $s->state == 'Aprobado' ? 'success' : 'warning' }}">
-            {{ $s->state }}
-        </span>
-    </td>
-    <td class="text-center fw-bold">{{ priceFormat($s->price) }}</td>
-    <td class="text-center">
-        {{-- Usa los nombres de ruta que ya tienes definidos en routes --}}
-        <a href="{{ route('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.movements.sale.show', $s->id) }}"
-           class="btn btn-sm btn-primary">
-            Ver
-        </a>
-    </td>
-</tr>
-@endforeach
-</tbody>
-
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">{{ trans('ptventa::sales.1T_Voucher') }}</th>
+                                    <th>{{ trans('ptventa::sales.1T_Client') }}</th>
+                                    <th class="text-center">{{ trans('ptventa::sales.1T_Date') }}</th>
+                                    <th class="text-center">{{ trans('ptventa::sales.1T_Products') }}</th>
+                                    <th class="text-center">{{ trans('ptventa::sales.1T_State') }}</th>
+                                    <th class="text-center">{{ trans('ptventa::sales.1T_Value') }}</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($sales as $s)
+                                    <tr>
+                                        <td class="text-center">{{ $loop->iteration }}</td>
+                                        <td class="text-center">{{ $s->voucher_number }}</td>
+                                        <td>{{ $s->movement_responsibilities->where('role', 'CLIENTE')->first()->person->full_name ?? 'N/A' }}</td>
+                                        <td class="text-center">{{ $s->registration_date }}</td>
+                                        <td>
+                                            <ul class="mb-0 ps-3">
+                                                @php
+                                                    // Agrupar los detalles por product_name y sumar las cantidades
+                                                    $groupedProducts = $s->movement_details
+                                                        ->groupBy('inventory.element.product_name')
+                                                        ->map(function ($group) {
+                                                            return [
+                                                                'product_name' => $group->first()->inventory->element->product_name,
+                                                                'total_amount' => $group->sum('amount')
+                                                            ];
+                                                        });
+                                                @endphp
+                                                @foreach ($groupedProducts as $product)
+                                                    <li>
+                                                        {{ $product['product_name'] }}
+                                                        <strong> (x{{ $product['total_amount'] }})</strong>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-{{ $s->state == 'Aprobado' ? 'success' : 'warning' }}">
+                                                {{ $s->state }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center fw-bold">{{ priceFormat($s->price) }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ route('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.movements.sale.show', $s->id) }}"
+                                               class="btn btn-sm btn-primary">
+                                                Ver
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="6" class="text-end fw-bold">{{ trans('ptventa::sales.1T_Total') }}</td>

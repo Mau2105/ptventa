@@ -100,15 +100,16 @@ class GenerateSale extends Component
             $product_amount_selected = $this->selected_products->where('product_element_id', $this->product_id)->sum('product_amount');
             $this->product_total_amount = $inventory->product_total_amount - $product_amount_selected;
             $this->product_price = $inventory->sale_price;
-            $this->reset('product_subtotal', 'product_amount');
-            $this->emit('input-product-amount', $this->product_total_amount, $this->product_price, $this->product_subtotal, $this->total);
+            $this->product_amount = 0; // Establecer explícitamente 0 como valor inicial
+            $this->product_subtotal = null;
+            $this->emit('input-product-amount', $this->product_total_amount, $this->product_price, 0, $this->total);
         }
     }
 
     public function updatedProductAmount($value)
     {
-        if ($value < 1) {
-            $this->product_amount = null;
+        if ($value < 1 || empty($this->product_id)) {
+            $this->product_amount = 0; // Mantener 0 si el valor es inválido
             $this->product_subtotal = null;
         } else {
             $inventory = $this->inventoryProduct($this->product_id);
@@ -116,8 +117,8 @@ class GenerateSale extends Component
             $available = $inventory->product_total_amount - $product_amount_selected;
 
             if ($value > $available) {
-                $this->product_amount = $available;
                 $this->emit('message', 'alert-warning', null, 'Cantidad inválida. No puede exceder el stock disponible (' . $available . ').', null);
+                $this->product_amount = $available;
             }
             $this->product_subtotal = priceFormat($this->product_amount * revertPriceFormat($this->product_price));
         }
@@ -127,6 +128,7 @@ class GenerateSale extends Component
     public function addProduct()
     {
         if (empty($this->product_id) || $this->product_amount < 1) {
+            $this->emit('message', 'alert-warning', null, 'Seleccione un producto y especifique una cantidad válida.', null);
             return;
         }
 
@@ -169,6 +171,7 @@ class GenerateSale extends Component
 
         $this->totalValueProducts();
         $this->reset('product_id', 'product_total_amount', 'product_price', 'product_amount', 'product_subtotal');
+        $this->product_amount = 0; // Reiniciar a 0 después de agregar
         $this->emit('input-product-amount', 0, 0, 0, $this->total);
     }
 
@@ -219,6 +222,7 @@ class GenerateSale extends Component
     public function resetValues()
     {
         $this->reset('product_id', 'product_total_amount', 'product_price', 'product_amount', 'product_subtotal');
+        $this->product_amount = 0; // Reiniciar a 0
         $this->totalValueProducts();
     }
 
@@ -234,13 +238,18 @@ class GenerateSale extends Component
     public function registerSale()
     {
         Gate::authorize('haveaccess', 'ptventa.admin-cashier.generate.sale');
-        $this->verifySelectedProduct();
+
+        if ($this->selected_products->isEmpty()) {
+            $this->emit('message', 'alert-warning', null, 'Debe seleccionar al menos un producto para registrar la venta.', null);
+            return;
+        }
 
         if (!Person::where('document_number', $this->customer_document_number)->exists()) {
             $this->emit('message', 'alert-warning', null, trans('ptventa::sales.Alert_Select_Client'), null);
             $this->customer_document_number = null;
             $this->customer_document_type = '----------------';
             $this->customer_full_name = '----------------';
+            $this->emit('open-modal-register-customer');
             return;
         }
 
@@ -286,6 +295,10 @@ class GenerateSale extends Component
                         'amount' => $amountToSubtract,
                         'price' => revertPriceFormat($product['product_price'])
                     ]);
+                }
+
+                if ($amountLeft > 0) {
+                    throw new Exception("No hay suficiente inventario para el producto: {$product['product_name']}.");
                 }
             }
 

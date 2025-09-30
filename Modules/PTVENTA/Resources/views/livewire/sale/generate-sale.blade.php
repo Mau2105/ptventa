@@ -1,5 +1,4 @@
 <div>
-
     <!-- Seleccionar y agregar producto -->
     <div class="row mx-3">
         <div class="col-4">
@@ -31,12 +30,14 @@
         <div class="col-2">
             <div class="form-group">
                 <label>{{ trans('ptventa::sales.Title_Amount') }}</label>
-                {!! Form::number('product_amount', null, [
+                {!! Form::number('product_amount', 0, [
                     'class' => 'form-control text-center',
                     'id' => 'product_amount',
-                    'disabled',
-                    'wire:model.defer' => 'product_amount',
+                    'wire:model' => 'product_amount',
                     'wire:keydown.enter' => 'addProduct',
+                    'wire:blur' => 'addProduct',
+                    'min' => '1',
+                    'placeholder' => '0',
                 ]) !!}
             </div>
         </div>
@@ -106,7 +107,6 @@
                     <strong>{{ trans('ptventa::sales.Title_Sales_Data') }}</strong>
                 </div>
                 <div class="card-body py-1 pb-2">
-
                     <label class="form-label my-0 mt-1">{{ trans('ptventa::sales.Text_Identification') }}</label>
                     <div class="row">
                         <div class="col-5 pe-1">
@@ -161,14 +161,13 @@
                     <div class="text-center mt-2">
                         @if (Auth::user()->havePermission('ptventa.admin-cashier.generate.sale'))
                             <button class="btn btn-sm btn-success" id="sale_button"
-                                wire:click="registerSale($('#change_value').val())" wire:loading.attr="disabled"
-                                wire:target="registerSale" disabled>
+                                wire:click="registerSale" wire:loading.attr="disabled"
+                                wire:target="registerSale" {{$selected_products->isEmpty() ? 'disabled' : ''}}>
                                 <i class="far fa-plus-square"></i>
                                 {{ trans('ptventa::sales.Btn_Register_Sale') }}
                             </button>
                         @endif
                     </div>
-
                 </div>
             </div>
         </div>
@@ -177,11 +176,10 @@
     <!-- Modal para registro rápido de cliente -->
     <div class="modal fade" id="registerCustomer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="registerCustomerLabel" aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog  modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header py-2">
-                    <h1 class="modal-title fs-5" id="registerCustomerLabel">{{ trans('ptventa::sales.Title_Modal') }}
-                    </h1>
+                    <h1 class="modal-title fs-5" id="registerCustomerLabel">{{ trans('ptventa::sales.Title_Modal') }}</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         wire:click="resetFormRegisterCustomer"></button>
                 </div>
@@ -236,8 +234,7 @@
                                         'wire:model.defer' => 'person_first_last_name',
                                     ]) }}
                                     @error('person_first_last_name')
-                                        <span class="error text-danger"
-                                            style="font-size: 10px">{{ $message }}</span>
+                                        <span class="error text-danger" style="font-size: 10px">{{ $message }}</span>
                                     @enderror
                                 </div>
                                 <div class="col-6">
@@ -247,8 +244,7 @@
                                         'wire:model.defer' => 'person_second_last_name',
                                     ]) }}
                                     @error('person_second_last_name')
-                                        <span class="error text-danger"
-                                            style="font-size: 10px">{{ $message }}</span>
+                                        <span class="error text-danger" style="font-size: 10px">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -265,17 +261,17 @@
     </div>
 
     @section('sripts-generate-sale')
-        <!-- Scripts del plugin para imprimer en impresoras termicas -->
+        <!-- Scripts del plugin para imprimir en impresoras térmicas -->
         <script src="{{ asset('modules/ptventa/js/sale/conector_javascript_POS80C.js') }}"></script>
-        <!-- Recursos para los formatedores de datos -->
+        <!-- Recursos para los formateadores de datos -->
         <script src="{{ asset('libs/cleave.js-1.6.0/dist/cleave.js') }}"></script>
         <!-- Formateadores de datos -->
         <script src="{{ asset('modules/ptventa/js/data-formats.js') }}"></script>
         <!-- Scripts del componente register-sale -->
         <script src="{{ asset('modules/ptventa/js/sale/register/livewire-register-sale.js') }}"></script>
-        <!-- Scripts para impresión en impresora pos termica -->
+        <!-- Scripts para impresión en impresora pos térmica -->
         <script src="{{ asset('modules/ptventa/js/pos_print/prints.js') }}"></script>
-        <!-- Scripts del de la internacionalizacion del alert que confirma la venta -->
+        <!-- Scripts para la internacionalización del alert que confirma la venta -->
         <script>
             window.translations = @json([
                 'alertChangeOf' => __('ptventa::sales.Alert_Change_Of'),
