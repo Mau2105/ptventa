@@ -34,10 +34,7 @@
                     'class' => 'form-control text-center',
                     'id' => 'product_amount',
                     'wire:model' => 'product_amount',
-                    'wire:keydown.enter' => 'addProduct',
-                    'wire:blur' => 'addProduct',
-                    'min' => '1',
-                    'placeholder' => '0',
+                    'min' => 0,
                 ]) !!}
             </div>
         </div>
@@ -53,7 +50,11 @@
             </div>
         </div>
     </div>
-
+    <div class="row mx-3">
+        <div class="col text-center">
+            <button wire:click="addProduct" class="btn btn-success">Agregar</button>
+        </div>
+    </div>
     <!-- Productos seleccionados -->
     <div class="row mx-3">
         <div class="col-md-9">
@@ -99,7 +100,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Datos de la venta -->
         <div class="col-md-3">
             <div class="card card-success">
@@ -131,7 +131,6 @@
                         'disabled',
                     ]) !!}
                     <hr>
-
                     <ul class="list-group list-group-flush text-center px-5 rounded-3 fs-5">
                         <li class="list-group-item list-group-item-primary py-0 px-0">
                             {!! Form::text('total', $total ? $total : '$0', [
@@ -157,7 +156,6 @@
                             ]) !!}
                         </li>
                     </ul>
-
                     <div class="text-center mt-2">
                         @if (Auth::user()->havePermission('ptventa.admin-cashier.generate.sale'))
                             <button class="btn btn-sm btn-success" id="sale_button"
@@ -172,7 +170,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal para registro rápido de cliente -->
     <div class="modal fade" id="registerCustomer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="registerCustomerLabel" aria-hidden="true" wire:ignore.self>
@@ -259,24 +256,5 @@
             </div>
         </div>
     </div>
-
-    @section('sripts-generate-sale')
-        <!-- Scripts del plugin para imprimir en impresoras térmicas -->
-        <script src="{{ asset('modules/ptventa/js/sale/conector_javascript_POS80C.js') }}"></script>
-        <!-- Recursos para los formateadores de datos -->
-        <script src="{{ asset('libs/cleave.js-1.6.0/dist/cleave.js') }}"></script>
-        <!-- Formateadores de datos -->
-        <script src="{{ asset('modules/ptventa/js/data-formats.js') }}"></script>
-        <!-- Scripts del componente register-sale -->
-        <script src="{{ asset('modules/ptventa/js/sale/register/livewire-register-sale.js') }}"></script>
-        <!-- Scripts para impresión en impresora pos térmica -->
-        <script src="{{ asset('modules/ptventa/js/pos_print/prints.js') }}"></script>
-        <!-- Scripts para la internacionalización del alert que confirma la venta -->
-        <script>
-            window.translations = @json([
-                'alertChangeOf' => __('ptventa::sales.Alert_Change_Of'),
-                'btnAccept' => __('ptventa::sales.Btn_Accept'),
-            ]);
-        </script>
-    @endsection
+    @section('sripts-generate-sale') @show <!-- Scripts necesarios para generar una venta -->
 </div>

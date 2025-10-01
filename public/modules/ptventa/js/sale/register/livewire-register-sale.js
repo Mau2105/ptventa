@@ -82,19 +82,20 @@ Livewire.on('message', function(type, action, message, change_value) {
             timer: 1500
         });
     } else {
-        Swal.fire({
-            title: action,
-            text: message,
-            html: (type == 'success') ?
-                '<div class="bg-light py-2">' +
-                    '<p class="text-secondary">' + window.translations.alertChangeOf + '</p>' +
-                    '<h1>' + change_value + '</h1>' +
-                '</div>' : null,
-            icon: type,
-            iconColor: color[type],
-            confirmButtonText: window.translations.btnAccept,
-            confirmButtonColor: 'green'
-        });
+Swal.fire({
+    title: action ?? '¡Venta realizada!',
+    html: (type == 'success')
+        ? '<div class="py-2">' +
+              '<h4 class="text-secondary">Debe devolver al cliente:</h4>' +
+              '<h1 class="text-success">' + change_value + '</h1>' +
+          '</div>'
+        : '<p>' + message + '</p>',
+    icon: type,
+    iconColor: color[type],
+    confirmButtonText: window.translations.btnAccept,
+    confirmButtonColor: 'green'
+});
+
     }
 });
 
@@ -164,13 +165,30 @@ Livewire.on('close-modal-register-customer', function() {
 });
 
 /* Generar impresión de factura de venta realizada */
-Livewire.on('printTicket', async function(movement) {
-    await print_sale(movement); // Imprimir factura de venta realizada
-    try {
-    } catch (error) {
-        /* Lanzar notificación toastr */
-        toastr.options.timeOut = 0;
-        toastr.options.closeButton = true;
-        toastr.error('Es posible que no este en ejecución el plugin_impresora_termica en el equipo.', 'Error de impresión');
-    }
+Livewire.on('printTicket', function(movement, changeAmount) {
+
+    // Lee el valor de cambio actual del input deshabilitado
+    let changeAmount = $('#change_value').val();  
+
+    Swal.fire({
+        title: '¿Desea imprimir esta venta?',
+        html: '<div class="text-center">' +
+                  '<h5 class="text-muted">Debe devolver al cliente:</h5>' +
+                  '<h1 class="text-success fw-bold">' + changeAmount + '</h1>' +
+              '</div>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, imprimir',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            try {
+                print_sale(movement); // tu función de impresión
+            } catch (error) {
+                toastr.options.timeOut = 0;
+                toastr.options.closeButton = true;
+                toastr.error('Es posible que no esté en ejecución el plugin_impresora_termica en el equipo.', 'Error de impresión');
+            }
+        }
+    });
 });

@@ -10,90 +10,63 @@
 @endpush
 
 @section('content')
-    <div class="card card-success card-outline shadow-sm">
+    <div class="card card-success card-outline shadow-sm" data-aos="zoom-in">
         <div class="card-body pt-0">
-            <div class="text-end my-2">
-                @if (Auth::user()->havePermission('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.sale.register'))
-                    <a href="{{ route('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.sale.register') }}"
-                        class="btn btn-sm btn-success">
-                        <i class="fa-solid fa-plus"></i>
-                        {{ trans('ptventa::sales.Btn_Register_Sale') }}
-                    </a>
-                @endif
+            <div class="row mb-3">
+                <div class="col-md-12 text-end my-2">
+                    @if (Auth::user()->havePermission('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.sale.register'))
+                        <a href="{{ route('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.sale.register') }}"
+                            class="btn btn-sm btn-success">
+                            <i class="fa-solid fa-plus fa-fade"></i>
+                            {{ trans('ptventa::sales.Btn_Register_Sale') }}
+                        </a>
+                    @endif
+                </div>
             </div>
 
             @if ($cashCount)
-                @if ($sales->count())
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="sales-table">
-                            <thead class="table-dark">
+                <div class="table-responsive" @if (empty($groupedProducts)) hidden @endif>
+                    <table class="table table-hover" id="products-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center">{{ trans('ptventa::sales.3T_Number') }}</th>
+                                <th>{{ trans('ptventa::sales.3T_Product') }}</th>
+                                <th class="text-center">{{ trans('ptventa::sales.3T_Amount') }}</th>
+                                <th class="text-center">{{ trans('ptventa::sales.3T_Subtotal') }}</th>
+                                <th class="text-center">{{ trans('ptventa::sales.3T_Total') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            @foreach ($groupedProducts as $name => $item)
                                 <tr>
-                                    <th class="text-center">#</th>
-                                    <th class="text-center">{{ trans('ptventa::sales.1T_Voucher') }}</th>
-                                    <th>{{ trans('ptventa::sales.1T_Client') }}</th>
-                                    <th class="text-center">{{ trans('ptventa::sales.1T_Date') }}</th>
-                                    <th class="text-center">{{ trans('ptventa::sales.1T_Products') }}</th>
-                                    <th class="text-center">{{ trans('ptventa::sales.1T_State') }}</th>
-                                    <th class="text-center">{{ trans('ptventa::sales.1T_Value') }}</th>
-                                    <th class="text-center">Acción</th>
+                                    <td class="text-center">{{ $loop->iteration }}</td>
+                                    <td>{{ $name }}</td>
+                                    <td class="text-center">{{ $item['cantidad'] }}</td>
+                                    <td class="text-center">
+                                        {{ priceFormat($item['min_price']) }}
+                                        @if ($item['min_price'] != $item['max_price'])
+                                            - {{ priceFormat($item['max_price']) }}
+                                        @endif
+                                    </td>
+                                    <td class="text-center"><strong>{{ priceFormat($item['subtotal']) }}</strong></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($sales as $s)
-                                    <tr>
-                                        <td class="text-center">{{ $loop->iteration }}</td>
-                                        <td class="text-center">{{ $s->voucher_number }}</td>
-                                        <td>{{ $s->movement_responsibilities->where('role', 'CLIENTE')->first()->person->full_name ?? 'N/A' }}</td>
-                                        <td class="text-center">{{ $s->registration_date }}</td>
-                                        <td>
-                                            <ul class="mb-0 ps-3">
-                                                @php
-                                                    // Agrupar los detalles por product_name y sumar las cantidades
-                                                    $groupedProducts = $s->movement_details
-                                                        ->groupBy('inventory.element.product_name')
-                                                        ->map(function ($group) {
-                                                            return [
-                                                                'product_name' => $group->first()->inventory->element->product_name,
-                                                                'total_amount' => $group->sum('amount')
-                                                            ];
-                                                        });
-                                                @endphp
-                                                @foreach ($groupedProducts as $product)
-                                                    <li>
-                                                        {{ $product['product_name'] }}
-                                                        <strong> (x{{ $product['total_amount'] }})</strong>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-{{ $s->state == 'Aprobado' ? 'success' : 'warning' }}">
-                                                {{ $s->state }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center fw-bold">{{ priceFormat($s->price) }}</td>
-                                        <td class="text-center">
-                                            <a href="{{ route('ptventa.' . getRoleRouteName(Route::currentRouteName()) . '.movements.sale.show', $s->id) }}"
-                                               class="btn btn-sm btn-primary">
-                                                Ver
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="6" class="text-end fw-bold">{{ trans('ptventa::sales.1T_Total') }}</td>
-                                    <td class="text-center fw-bold text-success">{{ priceFormat($sales->sum('price')) }}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center text-danger">
-                        <strong>{{ trans('ptventa::sales.Text_Optional_1') }}</strong>
-                    </div>
-                @endif
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="text-right" colspan="4">
+                                    <h3><strong>{{ trans('ptventa::sales.1T_Total') }}</strong></h3>
+                                </td>
+                                <td class="text-center text-success">
+                                    <h3><strong>{{ priceFormat(array_sum(array_column($groupedProducts, 'subtotal'))) }}</strong></h3>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="text-center text-danger" @if (!empty($groupedProducts)) hidden @endif>
+                    <strong>{{ trans('ptventa::sales.Text_Optional_1') }}</strong>
+                </div>
             @else
                 <div class="text-center text-danger">
                     <strong>{{ trans('ptventa::sales.Text_Optional_2') }}</strong>
@@ -102,3 +75,47 @@
         </div>
     </div>
 @endsection
+
+@include('ptventa::layouts.partials.plugins.datatables')
+@include('ptventa::layouts.partials.plugins.sweetalert2')
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Opciones comunes para todas las tablas DataTable
+            var dataTableOptions = {
+                "order": [],
+                "paging": false,
+                "columnDefs": [{
+                    "targets": [0],
+                    "orderable": false
+                }],
+                drawCallback: function(settings) {
+                    var api = this.api();
+                    // Recalcula los números iterados en la primera columna después de cada redibujado
+                    api.column(0, {
+                        search: 'applied',
+                        order: 'applied'
+                    }).nodes().each(function(cell, i) {
+                        cell.innerHTML = i + 1;
+                    });
+                }
+            };
+            // Verificar el idioma actual y decidir si agregar la opción de idioma
+            if ('{{ session('lang') }}' === 'es') {
+                dataTableOptions.language = language_datatables;
+            }
+            // Inicializar DataTables con las opciones configuradas
+            $('#products-table').DataTable(dataTableOptions);
+        });
+    </script>
+    @if (session('error'))
+        <script type="text/javascript">
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}',
+            });
+        </script>
+    @endif
+@endpush

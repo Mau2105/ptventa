@@ -26,34 +26,52 @@ class SaleController extends Controller
             ->where('state', 'Abierta')
             ->first();
 
-        $useDateRange = $request->has('start_date') && $request->has('end_date');
-        $start_date = $useDateRange 
-            ? $request->input('start_date') 
-            : ($cashCount 
-                ? Carbon::parse($cashCount->opening_date)->format('Y-m-d') 
-                : now()->subDays(30)->format('Y-m-d'));
-        $end_date = $useDateRange ? $request->input('end_date') : now()->format('Y-m-d');
+        $groupedProducts = [];
 
-        $startDate = Carbon::parse($start_date)->startOfDay();
-        $endDate = Carbon::parse($end_date)->endOfDay();
+        if ($cashCount) {
+            $startDate = Carbon::parse($cashCount->opening_date);
+            $endDate = Carbon::now();
 
-        $movement_type = MovementType::where('name', 'Venta')->firstOrFail();
+            $movement_type = MovementType::where('name', 'Venta')->firstOrFail();
 
-        $sales = Movement::with([
-            'movement_responsibilities.person',
-            'movement_details.inventory.element'
-        ])
-            ->where('movement_type_id', $movement_type->id)
-            ->where('state', 'Aprobado')
-            ->whereHas('warehouse_movements', function ($query) use ($app_puw) {
-                $query->where('productive_unit_warehouse_id', $app_puw->id)
-                    ->where('role', 'Entrega');
-            })
-            ->whereBetween('registration_date', [$startDate, $endDate])
-            ->orderBy('registration_date', 'DESC')
-            ->get();
+            $sales = Movement::with([
+                'movement_responsibilities.person',
+                'movement_details.inventory.element'
+            ])
+                ->where('movement_type_id', $movement_type->id)
+                ->where('state', 'Aprobado')
+                ->whereHas('warehouse_movements', function ($query) use ($app_puw) {
+                    $query->where('productive_unit_warehouse_id', $app_puw->id)
+                        ->where('role', 'Entrega');
+                })
+                ->whereBetween('registration_date', [$startDate, $endDate])
+                ->orderBy('registration_date', 'DESC')
+                ->get();
 
-        return view('ptventa::sale.index', compact('view', 'sales', 'cashCount'));
+            foreach ($sales as $s) {
+                foreach ($s->movement_details as $detail) {
+                    $name = $detail->inventory->element->product_name;
+                    $price = $detail->price;
+
+                    if (isset($groupedProducts[$name])) {
+                        $groupedProducts[$name]['cantidad'] += $detail->amount;
+                        $groupedProducts[$name]['subtotal'] += $detail->amount * $price;
+                        $groupedProducts[$name]['min_price'] = min($groupedProducts[$name]['min_price'], $price);
+                        $groupedProducts[$name]['max_price'] = max($groupedProducts[$name]['max_price'], $price);
+                    } else {
+                        $groupedProducts[$name] = [
+                            'producto' => $name,
+                            'cantidad' => $detail->amount,
+                            'subtotal' => $detail->amount * $price,
+                            'min_price' => $price,
+                            'max_price' => $price,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return view('ptventa::sale.index', compact('view', 'cashCount', 'groupedProducts'));
     }
 
     public function register()
