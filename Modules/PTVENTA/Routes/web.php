@@ -63,10 +63,6 @@ Route::middleware(['lang'])->group(function () {  // Middleware para la internac
             Route::post('admin/reports/sales/generate', 'generateSales')->name('ptventa.admin.reports.generate.sales');
             // Ruta para generar el PDF de ventas completas (Administrador)
             Route::post('admin/reports/sales/pdf', 'generateSalesPDF')->name('ptventa.admin.reports.generate.sales.pdf');
-            Route::post('admin/reports/sales/products/pdf', 'generateSalesProductsPDF')
-                ->name('ptventa.admin.reports.generate.products.pdf');
-            Route::post('cashier/reports/sales/products/pdf', 'generateSalesProductsPDF')
-                ->name('ptventa.cashier.reports.generate.products.pdf');
         });
 
         // Rutas para Ventas

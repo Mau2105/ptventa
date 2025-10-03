@@ -160,16 +160,7 @@ Livewire.on('open-modal-register-customer', function() {
 });
 
 // Cerrar el formulario de registro de cliente (persona)
-Livewire.on('close-modal-register-customer', function() {
-    modalRegisterCustomer.hide();
-});
-
-/* Generar impresión de factura de venta realizada */
 Livewire.on('printTicket', function(movement, changeAmount) {
-
-    // Lee el valor de cambio actual del input deshabilitado
-    let changeAmount = $('#change_value').val();  
-
     Swal.fire({
         title: '¿Desea imprimir esta venta?',
         html: '<div class="text-center">' +
@@ -183,12 +174,20 @@ Livewire.on('printTicket', function(movement, changeAmount) {
     }).then((result) => {
         if (result.isConfirmed) {
             try {
-                print_sale(movement); // tu función de impresión
+                print_sale(movement);
             } catch (error) {
                 toastr.options.timeOut = 0;
                 toastr.options.closeButton = true;
                 toastr.error('Es posible que no esté en ejecución el plugin_impresora_termica en el equipo.', 'Error de impresión');
             }
         }
+
+        Swal.fire({
+            icon: 'success',
+            title: '¡Venta realizada correctamente!',
+            showConfirmButton: false,
+            timer: 2000
+        });
     });
 });
+

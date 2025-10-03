@@ -28,13 +28,24 @@ class PermissionsTableSeeder extends Seeder
 
         // ===================== Registro de todos los permisos de la aplicación PTVENTA ==================
         // Vista principal del administrador
-        $permission = Permission::updateOrCreate(['slug' => 'ptventa.admin.index'], [ // Registro o actualización de permiso
-            'name' => 'Vista principal del administrador',
-            'description' => 'Pueder ver la vista principal del administrador',
-            'description_english' => 'You can see the main view of the administrator',
-            'app_id' => $app->id
-        ]);
-        $permissions_admin[] = $permission->id; // Almacenar permiso para rol
+// Generar PDF de productos vendidos (Administrador)
+$permission = Permission::updateOrCreate(['slug' => 'ptventa.admin.reports.generate.products.pdf'], [
+    'name' => 'Generar PDF de productos vendidos (Administrador)',
+    'description' => 'Genera un PDF con los productos vendidos agrupados por cantidad y precio',
+    'description_english' => 'Generate PDF of products sold grouped by quantity and price',
+    'app_id' => $app->id
+]);
+$permissions_admin[] = $permission->id;
+
+// Generar PDF de productos vendidos (Cajero)
+$permission = Permission::updateOrCreate(['slug' => 'ptventa.cashier.reports.generate.products.pdf'], [
+    'name' => 'Generar PDF de productos vendidos (Cajero)',
+    'description' => 'Genera un PDF con los productos vendidos agrupados por cantidad y precio',
+    'description_english' => 'Generate PDF of products sold grouped by quantity and price',
+    'app_id' => $app->id
+]);
+$permissions_cashier[] = $permission->id;
+
 
         // Vista principal del cajero
         $permission = Permission::updateOrCreate(['slug' => 'ptventa.cashier.index'], [ // Registro o actualización de permiso

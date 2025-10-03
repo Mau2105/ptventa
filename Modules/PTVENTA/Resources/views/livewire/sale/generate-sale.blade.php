@@ -15,10 +15,12 @@
         <div class="col-2">
             <div class="form-group">
                 <label>{{ trans('ptventa::sales.Title_Stock') }}</label>
-                {!! Form::text('product_total_amount', $product_total_amount, [
-                    'class' => 'form-control text-center',
-                    'disabled',
-                ]) !!}
+{!! Form::hidden('product_total_amount', null, ['wire:model' => 'product_total_amount']) !!}
+{!! Form::text('product_total_amount_visible', $product_total_amount, [
+    'class' => 'form-control text-center',
+    'readonly' => true,
+]) !!}
+
             </div>
         </div>
         <div class="col-2">

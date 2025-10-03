@@ -18,58 +18,60 @@
             <div class="row">
                 <div class="col-md-12">
 
-                    <div class="row mb-3">
-                        <div class="col-md-auto">
-                            {{-- Formulario búsqueda de ventas --}}
-                            <form class="form-inline" action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales') }}"
-                                  method="POST">
-                                @csrf
-                                <div class="form-group mr-3">
-                                    <label class="mr-2">{{ trans('ptventa::reports.Title_Form_Start_Date') }}</label>
-                                    <input type="date" class="form-control" name="start_date" id="start_date" value="{{ $start_date }}" required>
-                                </div>
-                                <div class="form-group mr-3">
-                                    <label class="mr-2">{{ trans('ptventa::reports.Title_Form_End_Date') }}</label>
-                                    <input type="date" class="form-control" name="end_date" id="end_date" value="{{ $end_date }}" required>
-                                </div>
-                                @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales'))
-                                    <button type="submit" class="btn btn-primary">
-                                        {{ trans('ptventa::reports.Btn_Search') }}
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
-                                @endif
-                            </form>
-                        </div>
+<div class="row mb-3">
+    <div class="col-md-auto">
+        {{-- Formulario búsqueda de ventas --}}
+        <form class="form-inline" action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales') }}"
+              method="POST">
+            @csrf
+            <div class="form-group mr-3">
+                <label class="mr-2">{{ trans('ptventa::reports.Title_Form_Start_Date') }}</label>
+                <input type="date" class="form-control" name="start_date" id="start_date" value="{{ $start_date }}" required>
+            </div>
+            <div class="form-group mr-3">
+                <label class="mr-2">{{ trans('ptventa::reports.Title_Form_End_Date') }}</label>
+                <input type="date" class="form-control" name="end_date" id="end_date" value="{{ $end_date }}" required>
+            </div>
+            @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales'))
+                <button type="submit" class="btn btn-primary">
+                    {{ trans('ptventa::reports.Btn_Search') }}
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            @endif
+        </form>
+    </div>
 
-                        {{-- Botones PDF --}}
-                        <div class="col-md d-flex gap-2">
-                            {{-- PDF de ventas detalladas --}}
-                            @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales.pdf'))
-                                <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales.pdf') }}" method="post" target="_blank">
-                                    @csrf
-                                    <input type="hidden" name="start_date" value="{{ $start_date }}">
-                                    <input type="hidden" name="end_date" value="{{ $end_date }}">
-                                    <button type="submit" class="btn btn-danger">
-                                        {{ trans('ptventa::reports.Btn_Generate_PDF') }}
-                                        <i class="fa-solid fa-file-pdf"></i>
-                                    </button>
-                                </form>
-                            @endif
+<div class="col-md d-flex gap-2">
+    {{-- Botón para reporte detallado de ventas --}}
+    @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales.pdf'))
+        <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.sales.pdf') }}" method="post" target="_blank">
+            @csrf
+            <input type="hidden" name="start_date" value="{{ $start_date }}">
+            <input type="hidden" name="end_date" value="{{ $end_date }}">
+            <button type="submit" class="btn btn-danger">
+                {{ trans('ptventa::reports.Btn_Generate_PDF') }}
+                <i class="fa-solid fa-file-pdf"></i>
+            </button>
+        </form>
+    @endif
 
-                            {{-- PDF de productos vendidos (agrupados) --}}
-                            @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.products.pdf'))
-                                <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.products.pdf') }}" method="post" target="_blank">
-                                    @csrf
-                                    <input type="hidden" name="start_date" value="{{ $start_date }}">
-                                    <input type="hidden" name="end_date" value="{{ $end_date }}">
-                                    <button type="submit" class="btn btn-outline-secondary">
-                                        Reporte de Productos
-                                        <i class="fa-solid fa-box-open"></i>
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
+    {{-- Botón para reporte de productos agrupados --}}
+    @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.products.pdf'))
+        <form action="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.reports.generate.products.pdf') }}" method="post" target="_blank">
+            @csrf
+            <input type="hidden" name="start_date" value="{{ $start_date }}">
+            <input type="hidden" name="end_date" value="{{ $end_date }}">
+            <button type="submit" class="btn btn-outline-secondary">
+                Reporte de Productos
+                <i class="fa-solid fa-box-open"></i>
+            </button>
+        </form>
+    @endif
+</div>
+
+
+
+</div>
 
                     <hr>
 

@@ -335,7 +335,7 @@ class GenerateSale extends Component
                 'movement_details.inventory.element.measurement_unit',
                 'movement_responsibilities.person'
             ])->find($movement->id);
-            $this->emit('printTicket', $final_movement); // Enviar orden de impresión
+            $this->emit('printTicket', $final_movement, $this->change_value);// Enviar orden de impresión
             $this->selected_products = collect();
             $this->defaultAction(); // Restaurar totalmente los datos del componente
             $this->payment_value = null;

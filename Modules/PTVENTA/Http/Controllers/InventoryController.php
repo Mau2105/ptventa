@@ -349,109 +349,103 @@ public function generateSales(Request $request)
 
     // PDF: Ventas (contador corregido y nombre de producto consistente)
     // --- NUEVO: PDF de Productos Vendidos (agrupado por producto, usando las mismas fechas que Sales) ---
-    public function generateSalesProductsPDF(\Illuminate\Http\Request $request)
-    {
-        $startDateInput = $request->input('start_date');
-        $endDateInput   = $request->input('end_date');
+public function generateSalesProductsPDF(Request $request)
+{
+    $startDateInput = $request->input('start_date');
+    $endDateInput   = $request->input('end_date');
 
-        if (!$startDateInput || !$endDateInput) {
-            return redirect()->back()->withErrors(['error' => 'Las fechas de inicio y fin son obligatorias.']);
-        }
+    if (!$startDateInput || !$endDateInput) {
+        return redirect()->back()->withErrors(['error' => 'Las fechas de inicio y fin son obligatorias.']);
+    }
 
-        $startDateInput = \Illuminate\Support\Carbon::parse($startDateInput)->format('Y-m-d');
-        $endDateInput   = \Illuminate\Support\Carbon::parse($endDateInput)->format('Y-m-d');
-        $startDate      = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $startDateInput)->startOfDay();
-        $endDate        = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $endDateInput)->endOfDay();
+    $startDate = Carbon::parse($startDateInput)->startOfDay();
+    $endDate   = Carbon::parse($endDateInput)->endOfDay();
 
-        $movement_type = \Modules\SICA\Entities\MovementType::where('name', 'Venta')->firstOrFail();
+    $movement_type = MovementType::where('name', 'Venta')->firstOrFail();
+    $movements = Movement::whereHas('warehouse_movements', function ($query) {
+            $query->where('productive_unit_warehouse_id', PUW::getAppPuw()->id)
+                  ->where('role', 'Entrega');
+        })
+        ->where('movement_type_id', $movement_type->id)
+        ->where('state', 'Aprobado')
+        ->whereBetween('registration_date', [$startDate, $endDate])
+        ->orderBy('registration_date', 'ASC')
+        ->get();
 
-        $movements = \Modules\SICA\Entities\Movement::whereHas('warehouse_movements', function ($query) {
-                $query->where('productive_unit_warehouse_id', \Modules\SICA\Entities\ProductiveUnitWarehouse::getAppPuw()->id)
-                      ->where('role', 'Entrega');
-            })
-            ->where('movement_type_id', $movement_type->id)
-            ->where('state', 'Aprobado')
-            ->whereBetween('registration_date', [$startDate, $endDate])
-            ->orderBy('registration_date', 'ASC')
-            ->get();
+    // Agrupar ventas por producto
+    $grouped = [];
+    foreach ($movements as $movement) {
+        foreach ($movement->movement_details as $detail) {
+            $key = $detail->inventory->element_id;
+            $name = $detail->inventory->element->name ?? $detail->inventory->element->product_name;
+            $price = $detail->price;
 
-        // Agrupar ventas por producto (usar array para evitar el error de Collection)
-        $grouped = [];  // key: element_id
-        foreach ($movements as $movement) {
-            foreach ($movement->movement_details as $detail) {
-                $key   = $detail->inventory->element_id;
-                $name  = $detail->inventory->element->name ?? $detail->inventory->element->product_name;
-                $price = $detail->price;
-
-                if (isset($grouped[$key])) {
-                    $grouped[$key]['cantidad']  += $detail->amount;
-                    $grouped[$key]['subtotal']  += $detail->amount * $price;
-                    $grouped[$key]['min_price']  = min($grouped[$key]['min_price'], $price);
-                    $grouped[$key]['max_price']  = max($grouped[$key]['max_price'], $price);
-                } else {
-                    $grouped[$key] = [
-                        'producto'  => $name,
-                        'cantidad'  => $detail->amount,
-                        'min_price' => $price,
-                        'max_price' => $price,
-                        'subtotal'  => $detail->amount * $price,
-                    ];
-                }
+            if (isset($grouped[$key])) {
+                $grouped[$key]['cantidad']  += $detail->amount;
+                $grouped[$key]['subtotal']  += $detail->amount * $price;
+                $grouped[$key]['min_price'] = min($grouped[$key]['min_price'], $price);
+                $grouped[$key]['max_price'] = max($grouped[$key]['max_price'], $price);
+            } else {
+                $grouped[$key] = [
+                    'producto'  => $name,
+                    'cantidad'  => $detail->amount,
+                    'min_price' => $price,
+                    'max_price' => $price,
+                    'subtotal'  => $detail->amount * $price,
+                ];
             }
         }
-
-        $puw = \Modules\SICA\Entities\ProductiveUnitWarehouse::getAppPuw();
-
-        // --- TCPDF ---
-        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $title = 'Reporte de Productos Vendidos - ' . $startDateInput . ' al ' . $endDateInput;
-        $pdf->SetTitle($title);
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->AddPage();
-        $pdf->SetY(15);
-        $header = 'Centro de Formación Agroindustrial "La Angostura" | Campoalegre - Huila';
-        $pdf->Cell(0, 0, $header, 0, 1, 'C');
-
-        $html = '<h4 style="text-align:center;"><strong>Bodega:</strong> ' . $puw->warehouse->name .
-                ' - <strong>Unidad Productiva:</strong> ' . $puw->productive_unit->name . '</h4>';
-        $html .= '<h3 style="text-align:center;">' . $title . '</h3>';
-
-        $html .= '<table style="border-collapse:collapse;width:100%;">';
-        $html .= '<thead style="background-color:#f2f2f2;"><tr>';
-        $html .= '<th style="border:1px solid #ddd;text-align:center;padding:8px;width:25px;"><b>#</b></th>';
-        $html .= '<th style="border:1px solid #ddd;text-align:left;padding:8px;"><b>Producto</b></th>';
-        $html .= '<th style="border:1px solid #ddd;text-align:center;padding:8px;width:60px;"><b>Cantidad</b></th>';
-        $html .= '<th style="border:1px solid #ddd;text-align:center;padding:8px;width:80px;"><b>Precio</b></th>';
-        $html .= '<th style="border:1px solid #ddd;text-align:center;padding:8px;width:80px;"><b>Subtotal</b></th>';
-        $html .= '</tr></thead><tbody>';
-
-        $total = 0; $i = 0;
-        foreach ($grouped as $item) {
-            $total += $item['subtotal'];
-            $i++;
-
-            $priceLabel = ($item['min_price'] == $item['max_price'])
-                ? priceFormat($item['min_price'])
-                : priceFormat($item['min_price']).' - '.priceFormat($item['max_price']);
-
-            $html .= '<tr>';
-            $html .= '<td style="border:1px solid #ddd;text-align:center;padding:8px;">'.$i.'</td>';
-            $html .= '<td style="border:1px solid #ddd;text-align:left;padding:8px;">'.$item['producto'].'</td>';
-            $html .= '<td style="border:1px solid #ddd;text-align:center;padding:8px;">'.$item['cantidad'].'</td>';
-            $html .= '<td style="border:1px solid #ddd;text-align:center;padding:8px;">'.$priceLabel.'</td>';
-            $html .= '<td style="border:1px solid #ddd;text-align:center;padding:8px;">'.priceFormat($item['subtotal']).'</td>';
-            $html .= '</tr>';
-        }
-
-        $html .= '</tbody><tfoot><tr>';
-        $html .= '<td colspan="4" style="border:1px solid #ddd;text-align:right;padding:8px;"><strong>Total General:</strong></td>';
-        $html .= '<td style="border:1px solid #ddd;text-align:center;padding:8px;"><strong>'.priceFormat($total).'</strong></td>';
-        $html .= '</tr></tfoot></table>';
-
-        $pdf->writeHTML($html, true, false, true, false, '');
-        $filename = 'Reporte_productos_vendidos_'.$startDateInput.'_al_'.$endDateInput.'.pdf';
-        $pdf->Output($filename, 'I');
     }
+
+    $puw = PUW::getAppPuw();
+    $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+    $title = 'Reporte de Productos Vendidos - ' . $startDateInput . ' al ' . $endDateInput;
+    $pdf->SetTitle($title);
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->AddPage();
+    $pdf->SetY(15);
+    $header = 'Centro de Formación Agroindustrial "La Angostura" | Campoalegre - Huila';
+    $pdf->Cell(0, 0, $header, 0, 1, 'C');
+
+    $html = '<h4 style="text-align:center;"><strong>Bodega:</strong> ' . $puw->warehouse->name .
+            ' - <strong>Unidad Productiva:</strong> ' . $puw->productive_unit->name . '</h4>';
+    $html .= '<h3 style="text-align:center;">' . $title . '</h3>';
+    $html .= '<table style="border-collapse:collapse;width:100%;">';
+    $html .= '<thead style="background-color:#f2f2f2;"><tr>
+        <th style="border:1px solid #ddd;text-align:center;padding:8px;">#</th>
+        <th style="border:1px solid #ddd;text-align:left;padding:8px;">Producto</th>
+        <th style="border:1px solid #ddd;text-align:center;padding:8px;">Cantidad</th>
+        <th style="border:1px solid #ddd;text-align:center;padding:8px;">Precio</th>
+        <th style="border:1px solid #ddd;text-align:center;padding:8px;">Subtotal</th>
+    </tr></thead><tbody>';
+
+    $total = 0; $i = 0;
+    foreach ($grouped as $item) {
+        $i++;
+        $total += $item['subtotal'];
+        $priceLabel = ($item['min_price'] == $item['max_price'])
+            ? priceFormat($item['min_price'])
+            : priceFormat($item['min_price']).' - '.priceFormat($item['max_price']);
+
+        $html .= "<tr>
+            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$i}</td>
+            <td style='border:1px solid #ddd;text-align:left;padding:8px;'>{$item['producto']}</td>
+            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$item['cantidad']}</td>
+            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$priceLabel}</td>
+            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>".priceFormat($item['subtotal'])."</td>
+        </tr>";
+    }
+
+    $html .= "</tbody><tfoot><tr>
+        <td colspan='4' style='border:1px solid #ddd;text-align:right;padding:8px;'><strong>Total General:</strong></td>
+        <td style='border:1px solid #ddd;text-align:center;padding:8px;'><strong>".priceFormat($total)."</strong></td>
+    </tr></tfoot></table>";
+
+    $pdf->writeHTML($html, true, false, true, false, '');
+    $filename = 'Reporte_productos_vendidos_'.$startDateInput.'_al_'.$endDateInput.'.pdf';
+    $pdf->Output($filename, 'I');
+}
+
 
     public function generateSalesPDF(Request $request)
     {
