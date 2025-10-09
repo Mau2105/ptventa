@@ -1,66 +1,35 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# SICEFA - Plataforma modular del Centro de Formación
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este repositorio contiene la plataforma Laravel que integra los módulos desarrollados por el Centro de Formación para apoyar sus procesos académicos, administrativos y de servicios. El objetivo es centralizar soluciones como punto de venta, votaciones, gestión de laboratorios, reportes académicos y monitoreo ambiental dentro de una misma base de código.
 
-## About Laravel
+## Características principales
+- **Arquitectura modular:** basada en `nwidart/laravel-modules`, cada solución vive en `Modules/<Nombre>` con su propio ciclo de rutas, controladores, vistas y assets.
+- **Integraciones clave:** incluye Livewire para experiencias reactivas, generación de reportes PDF/Excel, impresión POS mediante ESC/POS y administradores de archivos para gestionar recursos multimedia.
+- **Internacionalización y permisos:** el middleware `lang` aplica traducciones dinámicas y verifica accesos según el nombre de cada ruta, permitiendo separar vistas públicas y privadas por rol.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Módulos destacados
+- **PTVENTA:** punto de venta con administración de inventario, ventas, caja y reportes (ver documentación detallada en `Modules/PTVENTA/Docs/flow.md`).
+- **BOLMETEOR:** visualización y administración de datos meteorológicos del centro.
+- **CEFAMAPS:** mapa institucional con panel administrativo.
+- **CPD:** portal informativo del centro de procesamiento de datos.
+- **EVS:** sistema electoral con votación en línea y administración de jurados.
+- **SENAEMPRESA:** gestión de turnos rutinarios para aprendices.
+- **SIGAC:** seguimiento académico y control de asistencia.
+- **TILABS:** control de laboratorios TIC e inventario de préstamos.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Consulta la [Guía funcional del repositorio](Docs/README.md) para conocer el detalle de cada módulo, dependencias y buenas prácticas de contribución; y revisa el [Catálogo funcional de módulos](Docs/modules.md) para un desglose completo de responsabilidades y flujos por paquete.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Puesta en marcha rápida
+1. Clonar el repositorio y copiar `.env.example` a `.env` ajustando credenciales.
+2. Instalar dependencias con `composer install` y `npm install`.
+3. Generar la llave de la aplicación con `php artisan key:generate`.
+4. Ejecutar migraciones/seeders necesarios y compilar assets con `npm run dev`.
+5. Levantar el servidor con `php artisan serve`.
 
-## Learning Laravel
+## Contribución
+- Desarrolla nuevas funcionalidades dentro del módulo correspondiente manteniendo la estructura modular.
+- Sigue las convenciones de nombres de ruta `cefa.<modulo>.<feature>` para integrarte con el sistema de permisos.
+- Actualiza la documentación cuando se añadan características relevantes.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[CMS Max](https://www.cmsmax.com/)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-- **[Romega Software](https://romegasoftware.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Licencia
+Este proyecto se distribuye bajo la licencia MIT incluida en el repositorio.
