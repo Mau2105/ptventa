@@ -20,6 +20,7 @@
     <link href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}" rel="stylesheet">
     {{--<link href="{{ asset('css/app.css') }}" rel="stylesheet">--}}
     <link href="{{ asset('general/assets/css/style.css') }}" rel="stylesheet">
+    @stack('styles')
 
 
 </head>

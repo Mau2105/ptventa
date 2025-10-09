@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DocsController;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -18,6 +19,12 @@ Route::middleware(['lang'])->group(function(){
     Route::get('/', [HomeController::class, 'welcome'])->name('cefa.welcome');
     Route::get('/developers', [HomeController::class, 'developers'])->name('cefa.developers');
     Route::get('/home', [HomeController::class, 'index'])->name('cefa.home');
+
+    Route::prefix('docs')->name('docs.')->group(function () {
+        Route::get('/', [DocsController::class, 'overview'])->name('overview');
+        Route::get('/modules', [DocsController::class, 'modules'])->name('modules');
+        Route::get('/ptventa', [DocsController::class, 'ptventa'])->name('ptventa');
+    });
 
     Route::prefix('filemanager')->group(function() {
      \UniSharp\LaravelFilemanager\Lfm::routes();
