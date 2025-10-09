@@ -12,3 +12,6 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+
+# Ignore nested node modules for module-specific frontends
+**/node_modules
