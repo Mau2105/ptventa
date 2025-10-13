@@ -102,9 +102,9 @@
                                 </span>
                             </div>
                             <select name="category_id" class="form-select" required>
-                                <option value="">{{ trans('ptventa::element.Select_Form_Category')}}</option>
+                                <option value="">{{ trans('ptventa::element.Select_Form_Category') }}</option>
                                 @foreach ($categories as $c)
-                                    <option value="{{ $c->id }}" {{ old('measurement_unit_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                    <option value="{{ $c->id }}" {{ old('category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -133,9 +133,9 @@
                                 </span>
                             </div>
                             <select name="kind_of_purchase_id" class="form-select" required>
-                                <option value="">{{ trans('ptventa::element.Select_Form_Type_Purchase')}}</option>
+                                <option value="">{{ trans('ptventa::element.Select_Form_Type_Purchase') }}</option>
                                 @foreach ($kind_of_purchases as $kp)
-                                    <option value="{{ $kp->id }}" {{ old('measurement_unit_id') == $kp->id ? 'selected' : '' }}>{{ $kp->name }}</option>
+                                    <option value="{{ $kp->id }}" {{ old('kind_of_purchase_id') == $kp->id ? 'selected' : '' }}>{{ $kp->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -147,11 +147,11 @@
             </div>
             <div class="card-footer bg-white text-right">
                 <a href="{{ route('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.element.index') }}" class="btn btn-sm btn-light mr-2">
-                    <strong>{{ trans('ptventa::element.Btn_Cancel')}}</strong>
+                    <strong>{{ trans('ptventa::element.Btn_Cancel') }}</strong>
                 </a>
                 @if(Auth::user()->havePermission('ptventa.'.getRoleRouteName(Route::currentRouteName()).'.element.store'))
                     <button type="submit" class="btn btn-sm btn-success" id="btn-register-element">
-                        <b>{{ trans('ptventa::element.Btn_Register')}}</b>
+                        <b>{{ trans('ptventa::element.Btn_Register') }}</b>
                     </button>
                 @endif
             </div>
@@ -160,6 +160,8 @@
 @endsection
 
 @push('scripts')
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Recursos para los formatedores de datos -->
     <script src="{{ asset('libs/cleave.js-1.6.0/dist/cleave.js') }}"></script>
     <!-- Formateadores de datos -->
@@ -169,23 +171,42 @@
         $(document).ready(function (e) {
             // Obtener la URL de la imagen predeterminada
             var defaultImageSrc = $('#imagenSeleccionada').attr('src');
+
             $('#image').change(function () {
-                let reader = new FileReader();
-                reader.onload = (e) => {
-                    $('#imagenSeleccionada').attr('src', e.target.result);
-                }
-                // Verificar si se seleccionó una imagen
-                if (this.files && this.files[0]) {
-                    reader.readAsDataURL(this.files[0]);
+                let file = this.files[0];
+                let allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+                // Verificar si se seleccionó un archivo
+                if (file) {
+                    // Verificar si el archivo es una imagen
+                    if (allowedImageTypes.includes(file.type)) {
+                        let reader = new FileReader();
+                        reader.onload = (e) => {
+                            $('#imagenSeleccionada').attr('src', e.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        // Mostrar alerta con SweetAlert2
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: '¡Solo se permiten archivos de imagen (jpg, jpeg, png, gif, webp)!',
+                            confirmButtonText: 'Aceptar'
+                        });
+                        // Limpiar el input
+                        $(this).val('');
+                        // Restaurar la imagen predeterminada
+                        $('#imagenSeleccionada').attr('src', defaultImageSrc);
+                    }
                 } else {
-                    // Si no se selecciona una imagen, restaurar la imagen predeterminada
+                    // Restaurar la imagen predeterminada si no se selecciona archivo
                     $('#imagenSeleccionada').attr('src', defaultImageSrc);
                 }
             });
 
             // Desactivar botón de registrar cuando se envíe el formulario
             $("#form-element").submit(function() {
-                $("#btn-register-element").prop("disabled", true); // Deshabilitar el botón
+                $("#btn-register-element").prop("disabled", true);
             });
         });
     </script>
