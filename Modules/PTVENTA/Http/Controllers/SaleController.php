@@ -9,6 +9,7 @@ use Modules\SICA\Entities\Movement;
 use Modules\SICA\Entities\MovementType;
 use Modules\SICA\Entities\CashCount;
 use Modules\SICA\Entities\ProductiveUnitWarehouse as PUW;
+use Modules\SICA\Entities\MovementDetail; // Agregado para detalles
 use Carbon\Carbon;
 use TCPDF;
 
@@ -148,7 +149,7 @@ class SaleController extends Controller
         $groupedProducts = [];
         foreach ($sales as $movement) {
             foreach ($movement->movement_details as $detail) {
-                $name = $detail->inventory->element->product_name; // Usar product_name directamente
+                $name = $detail->inventory->element->product_name;
                 $price = $detail->price;
 
                 if (isset($groupedProducts[$name])) {
@@ -208,7 +209,7 @@ class SaleController extends Controller
         $products = [];
         foreach ($movements as $movement) {
             foreach ($movement->movement_details as $detail) {
-                $name = $detail->inventory->element->product_name; // Usar product_name directamente
+                $name = $detail->inventory->element->product_name;
                 $price = $detail->price;
 
                 if (isset($products[$name])) {

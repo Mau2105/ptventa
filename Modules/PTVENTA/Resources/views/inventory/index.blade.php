@@ -63,20 +63,39 @@
                     <tbody>
                         @foreach ($groupedInventories as $group)
                             @php
-                                $firstRecord = $group->sortByDesc('updated_at')->first();
+                                $firstRecord = $group->first(); // Usa el primero del grupo (ordenado DESC en controlador)
+                                $rowspan = $group->count();
                             @endphp
                             <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
-                                <td><strong>{{ $firstRecord->element->name }}</strong></td>
-                                <td class="text-center">{{ $firstRecord->destination }}</td>
-                                <td class="text-center">{{ $firstRecord->lot_number }}</td>
-                                <td class="text-center">{{ $firstRecord->production_date }}</td>
-                                <td class="text-center">{{ $firstRecord->expiration_date }}</td>
-                                <td class="text-center">{{ priceFormat($firstRecord->price) }}</td>
-                                <td class="text-center">{{ $firstRecord->amount }}</td>
-                                <td class="text-center"><strong>{{ priceFormat($firstRecord->element->price) }}</strong></td>
-                                <td class="text-center"><strong>{{ $group->sum('amount') }}</strong></td>
+                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
+                                    {{ $loop->iteration }}
+                                </td>
+                                <td rowspan="{{ $rowspan }}" class="border-secondary align-middle">
+                                    <strong>{{ $firstRecord->element->name }}</strong>
+                                </td>
+                                <td class="text-center border-secondary">{{ $firstRecord->destination }}</td>
+                                <td class="text-center border-secondary">{{ $firstRecord->lot_number }}</td>
+                                <td class="text-center border-secondary">{{ $firstRecord->production_date }}</td>
+                                <td class="text-center border-secondary">{{ $firstRecord->expiration_date }}</td>
+                                <td class="text-center border-secondary">{{ priceFormat($firstRecord->price) }}</td>
+                                <td class="text-center border-secondary">{{ $firstRecord->amount }}</td>
+                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
+                                    <strong>{{ priceFormat($firstRecord->element->price) }}</strong>
+                                </td>
+                                <td rowspan="{{ $rowspan }}" class="text-center border-secondary align-middle">
+                                    <strong>{{ $group->sum('amount') }}</strong>
+                                </td>
                             </tr>
+                            @foreach ($group->slice(1) as $record)
+                                <tr>
+                                    <td class="text-center border-secondary">{{ $record->destination }}</td>
+                                    <td class="text-center border-secondary">{{ $record->lot_number }}</td>
+                                    <td class="text-center border-secondary">{{ $record->production_date }}</td>
+                                    <td class="text-center border-secondary">{{ $record->expiration_date }}</td>
+                                    <td class="text-center border-secondary">{{ priceFormat($record->price) }}</td>
+                                    <td class="text-center border-secondary">{{ $record->amount }}</td>
+                                </tr>
+                            @endforeach
                         @endforeach
                     </tbody>
                 </table>

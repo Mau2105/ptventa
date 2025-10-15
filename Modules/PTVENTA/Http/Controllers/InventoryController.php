@@ -313,14 +313,13 @@ public function generateSales(Request $request)
         ->orderBy('registration_date', 'ASC')
         ->get();
 
-    // Agrupar productos por nombre + referencia
+    // Agrupar solo por nombre de producto (eliminada referencia)
     $groupedProducts = [];
     foreach ($movements as $movement) {
         foreach ($movement->movement_details as $detail) {
             $el   = $detail->inventory->element;
-            $name = $el->name ?? $el->product_name;
-            $ref  = $el->reference ?? $el->reference_code ?? $el->code ?? $detail->inventory->lot_number ?? 'N/A';
-            $key  = $name.'|'.$ref;
+            $name = $el->name ?? $el->product_name ?? 'N/A'; // Fallback seguro
+            $key  = $name;
 
             $price = $detail->price;
             $amount = $detail->amount;
@@ -329,7 +328,6 @@ public function generateSales(Request $request)
             if (!isset($groupedProducts[$key])) {
                 $groupedProducts[$key] = [
                     'producto'   => $name,
-                    'referencia' => $ref,
                     'cantidad'   => 0,
                     'min_price'  => $price,
                     'max_price'  => $price,
@@ -379,23 +377,21 @@ public function generateSalesProductsPDF(Request $request)
         ->orderBy('registration_date', 'ASC')
         ->get();
 
-    // Agrupar por nombre + referencia
+    // Agrupar y calcular datos
     $grouped = [];
     foreach ($movements as $movement) {
         foreach ($movement->movement_details as $detail) {
             $el   = $detail->inventory->element;
-            $name = $el->name ?? $el->product_name;
-            $ref  = $el->reference ?? $el->reference_code ?? $el->code ?? $detail->inventory->lot_number ?? 'N/A';
-            $key  = $name.'|'.$ref;
+            $name = optional($el)->name ?? optional($el)->product_name ?? 'N/A';
+            $key  = $name;
 
-            $price = $detail->price;
-            $amount = $detail->amount;
+            $price = $detail->price ?? 0;
+            $amount = $detail->amount ?? 0;
             $subtotal = $amount * $price;
 
             if (!isset($grouped[$key])) {
                 $grouped[$key] = [
                     'producto'   => $name,
-                    'referencia' => $ref,
                     'cantidad'   => 0,
                     'min_price'  => $price,
                     'max_price'  => $price,
@@ -409,6 +405,9 @@ public function generateSalesProductsPDF(Request $request)
         }
     }
 
+    // Ordenar alfabéticamente por nombre de producto
+    ksort($grouped);
+
     $puw = PUW::getAppPuw();
     $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
     $title = 'Reporte de Productos Vendidos - '.$startDateInput.' al '.$endDateInput;
@@ -420,44 +419,48 @@ public function generateSalesProductsPDF(Request $request)
 
     $html  = '<h4 style="text-align:center;"><strong>Bodega:</strong> '.$puw->warehouse->name.' - <strong>Unidad Productiva:</strong> '.$puw->productive_unit->name.'</h4>';
     $html .= '<h3 style="text-align:center;">'.$title.'</h3>';
-    $html .= '<table style="border-collapse:collapse;width:100%;">';
-    $html .= '<thead style="background-color:#f2f2f2;"><tr>
-        <th style="border:1px solid #ddd;text-align:center;padding:8px;width:25px;">#</th>
-        <th style="border:1px solid #ddd;text-align:left;padding:8px;">Producto</th>
-        <th style="border:1px solid #ddd;text-align:left;padding:8px;">Referencia</th>
-        <th style="border:1px solid #ddd;text-align:center;padding:8px;width:70px;">Cantidad</th>
-        <th style="border:1px solid #ddd;text-align:center;padding:8px;width:90px;">Precio</th>
-        <th style="border:1px solid #ddd;text-align:center;padding:8px;width:100px;">Subtotal</th>
+    
+    // Tabla con líneas verticales y horizontales reforzadas
+    $html .= '<table style="border-collapse:collapse; width:100%; font-size:10pt; border:1px solid #000;">';
+    $html .= '<thead style="background-color:#f2f2f2; border-bottom:2px solid #000;"><tr>
+        <th style="border:1px solid #000; text-align:center; padding:10px; width:5%;"><strong>#</strong></th>
+        <th style="border:1px solid #000; text-align:right; padding:10px; width:35%;"><strong>Producto</strong></th>
+        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Cantidad</strong></th>
+        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Precio</strong></th>
+        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Subtotal</strong></th>
     </tr></thead><tbody>';
 
     $total = 0; $i = 0;
-    foreach ($grouped as $item) {
-        $i++;
-        $total += $item['subtotal'];
-        $priceLabel = ($item['min_price'] == $item['max_price'])
-            ? priceFormat($item['min_price'])
-            : priceFormat($item['min_price']).' - '.priceFormat($item['max_price']);
+    if (empty($grouped)) {
+        $html .= '<tr><td colspan="5" style="text-align:center; padding:10px; border:1px solid #000;">No hay datos para el rango seleccionado.</td></tr>';
+    } else {
+        foreach ($grouped as $item) {
+            $i++;
+            $total += $item['subtotal'];
+            $priceLabel = ($item['min_price'] == $item['max_price'])
+                ? priceFormat($item['min_price'])
+                : priceFormat($item['min_price']) . ' - ' . priceFormat($item['max_price']);
+            $cantidad = number_format($item['cantidad'], 0, '.', ','); // Cantidad sin decimales
 
-        $html .= "<tr>
-            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$i}</td>
-            <td style='border:1px solid #ddd;text-align:left;padding:8px;'>{$item['producto']}</td>
-            <td style='border:1px solid #ddd;text-align:left;padding:8px;'>{$item['referencia']}</td>
-            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$item['cantidad']}</td>
-            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>{$priceLabel}</td>
-            <td style='border:1px solid #ddd;text-align:center;padding:8px;'>".priceFormat($item['subtotal'])."</td>
-        </tr>";
+            $html .= "<tr>
+                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$i}</td>
+                <td style='border:1px solid #000; text-align:right; padding:10px;'>{$item['producto']}</td>
+                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$cantidad}</td>
+                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$priceLabel}</td>
+                <td style='border:1px solid #000; text-align:center; padding:10px;'>".priceFormat($item['subtotal'])."</td>
+            </tr>";
+        }
     }
 
-    $html .= "</tbody><tfoot><tr>
-        <td colspan='5' style='border:1px solid #ddd;text-align:right;padding:8px;'><strong>Total General:</strong></td>
-        <td style='border:1px solid #ddd;text-align:center;padding:8px;'><strong>".priceFormat($total)."</strong></td>
-    </tr></tfoot></table>";
+    $html .= '</tbody><tfoot><tr>
+        <td colspan="4" style="border:1px solid #000; text-align:right; padding:10px; font-weight:bold; background-color:#f2f2f2;">Total General:</td>
+        <td style="border:1px solid #000; text-align:center; padding:10px; font-weight:bold; background-color:#f2f2f2;">'.priceFormat($total).'</td>
+    </tr></tfoot></table>';
 
     $pdf->writeHTML($html, true, false, true, false, '');
     $filename = 'Reporte_productos_vendidos_'.$startDateInput.'_al_'.$endDateInput.'.pdf';
     $pdf->Output($filename, 'I');
 }
-
 
 
 public function generateSalesPDF(Request $request)

@@ -1,4 +1,5 @@
 <div>
+
     <!-- Seleccionar y agregar producto -->
     <div class="row mx-3">
         <div class="col-4">
@@ -15,12 +16,10 @@
         <div class="col-2">
             <div class="form-group">
                 <label>{{ trans('ptventa::sales.Title_Stock') }}</label>
-{!! Form::hidden('product_total_amount', null, ['wire:model' => 'product_total_amount']) !!}
-{!! Form::text('product_total_amount_visible', $product_total_amount, [
-    'class' => 'form-control text-center',
-    'readonly' => true,
-]) !!}
-
+                {!! Form::text('product_total_amount', $product_total_amount, [
+                    'class' => 'form-control text-center',
+                    'disabled',
+                ]) !!}
             </div>
         </div>
         <div class="col-2">
@@ -32,11 +31,12 @@
         <div class="col-2">
             <div class="form-group">
                 <label>{{ trans('ptventa::sales.Title_Amount') }}</label>
-                {!! Form::number('product_amount', 0, [
+                {!! Form::number('product_amount', null, [
                     'class' => 'form-control text-center',
                     'id' => 'product_amount',
-                    'wire:model' => 'product_amount',
-                    'min' => 0,
+                    ':disabled' => '!enable_amount_input',  // Dinámico: habilitado solo si hay producto seleccionado
+                    'wire:model.defer' => 'product_amount',
+                    'wire:keydown.enter' => 'addProduct',
                 ]) !!}
             </div>
         </div>
@@ -52,11 +52,7 @@
             </div>
         </div>
     </div>
-    <div class="row mx-3">
-        <div class="col text-center">
-            <button wire:click="addProduct" class="btn btn-success">Agregar</button>
-        </div>
-    </div>
+
     <!-- Productos seleccionados -->
     <div class="row mx-3">
         <div class="col-md-9">
@@ -102,6 +98,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Datos de la venta -->
         <div class="col-md-3">
             <div class="card card-success">
@@ -109,6 +106,7 @@
                     <strong>{{ trans('ptventa::sales.Title_Sales_Data') }}</strong>
                 </div>
                 <div class="card-body py-1 pb-2">
+
                     <label class="form-label my-0 mt-1">{{ trans('ptventa::sales.Text_Identification') }}</label>
                     <div class="row">
                         <div class="col-5 pe-1">
@@ -133,6 +131,7 @@
                         'disabled',
                     ]) !!}
                     <hr>
+
                     <ul class="list-group list-group-flush text-center px-5 rounded-3 fs-5">
                         <li class="list-group-item list-group-item-primary py-0 px-0">
                             {!! Form::text('total', $total ? $total : '$0', [
@@ -158,27 +157,31 @@
                             ]) !!}
                         </li>
                     </ul>
+
                     <div class="text-center mt-2">
                         @if (Auth::user()->havePermission('ptventa.admin-cashier.generate.sale'))
                             <button class="btn btn-sm btn-success" id="sale_button"
-                                wire:click="registerSale" wire:loading.attr="disabled"
-                                wire:target="registerSale" {{$selected_products->isEmpty() ? 'disabled' : ''}}>
+                                wire:click="registerSale($('#change_value').val())" wire:loading.attr="disabled"
+                                wire:target="registerSale" disabled>
                                 <i class="far fa-plus-square"></i>
                                 {{ trans('ptventa::sales.Btn_Register_Sale') }}
                             </button>
                         @endif
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Modal para registro rápido de cliente -->
     <div class="modal fade" id="registerCustomer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="registerCustomerLabel" aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog  modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header py-2">
-                    <h1 class="modal-title fs-5" id="registerCustomerLabel">{{ trans('ptventa::sales.Title_Modal') }}</h1>
+                    <h1 class="modal-title fs-5" id="registerCustomerLabel">{{ trans('ptventa::sales.Title_Modal') }}
+                    </h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         wire:click="resetFormRegisterCustomer"></button>
                 </div>
@@ -233,7 +236,8 @@
                                         'wire:model.defer' => 'person_first_last_name',
                                     ]) }}
                                     @error('person_first_last_name')
-                                        <span class="error text-danger" style="font-size: 10px">{{ $message }}</span>
+                                        <span class="error text-danger"
+                                            style="font-size: 10px">{{ $message }}</span>
                                     @enderror
                                 </div>
                                 <div class="col-6">
@@ -243,7 +247,8 @@
                                         'wire:model.defer' => 'person_second_last_name',
                                     ]) }}
                                     @error('person_second_last_name')
-                                        <span class="error text-danger" style="font-size: 10px">{{ $message }}</span>
+                                        <span class="error text-danger"
+                                            style="font-size: 10px">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -258,5 +263,30 @@
             </div>
         </div>
     </div>
-    @section('sripts-generate-sale') @show <!-- Scripts necesarios para generar una venta -->
+
+    @section('sripts-generate-sale')
+        <!-- Scripts del plugin para imprimer en impresoras termicas -->
+        <script src="{{ asset('modules/ptventa/js/sale/conector_javascript_POS80C.js') }}"></script>
+        <!-- Recursos para los formatedores de datos -->
+        <script src="{{ asset('libs/cleave.js-1.6.0/dist/cleave.js') }}"></script>
+        <!-- Formateadores de datos -->
+        <script src="{{ asset('modules/ptventa/js/data-formats.js') }}"></script>
+        <!-- Scripts del componente register-sale -->
+        <script src="{{ asset('modules/ptventa/js/sale/register/livewire-register-sale.js') }}"></script>
+        <!-- Scripts para impresión en impresora pos termica -->
+        <script src="{{ asset('modules/ptventa/js/pos_print/prints.js') }}"></script>
+        <!-- Scripts del de la internacionalizacion del alert que confirma la venta -->
+        <script>
+            window.translations = @json([
+                'alertChangeOf' => __('ptventa::sales.Alert_Change_Of'),
+                'btnAccept' => __('ptventa::sales.Btn_Accept'),
+            ]);
+
+            // Listener para habilitar/deshabilitar el input de cantidad vía JS
+            Livewire.on('enable-amount-input', (enable) => {
+                const input = document.getElementById('product_amount');
+                if (input) input.disabled = !enable;
+            });
+        </script>
+    @endsection
 </div>
