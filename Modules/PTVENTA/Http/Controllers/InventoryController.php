@@ -358,15 +358,17 @@ public function generateSales(Request $request)
 public function generateSalesProductsPDF(Request $request)
 {
     $startDateInput = $request->input('start_date');
-    $endDateInput   = $request->input('end_date');
+    $endDateInput = $request->input('end_date');
+
     if (!$startDateInput || !$endDateInput) {
         return redirect()->back()->withErrors(['error' => 'Las fechas de inicio y fin son obligatorias.']);
     }
 
     $startDate = Carbon::parse($startDateInput)->startOfDay();
-    $endDate   = Carbon::parse($endDateInput)->endOfDay();
+    $endDate = Carbon::parse($endDateInput)->endOfDay();
 
     $movement_type = MovementType::where('name', 'Venta')->firstOrFail();
+
     $movements = Movement::whereHas('warehouse_movements', function ($q) {
             $q->where('productive_unit_warehouse_id', PUW::getAppPuw()->id)
               ->where('role', 'Entrega');
@@ -377,25 +379,24 @@ public function generateSalesProductsPDF(Request $request)
         ->orderBy('registration_date', 'ASC')
         ->get();
 
-    // Agrupar y calcular datos
+    // Agrupación de productos (tu lógica está perfecta)
     $grouped = [];
     foreach ($movements as $movement) {
         foreach ($movement->movement_details as $detail) {
-            $el   = $detail->inventory->element;
-            $name = optional($el)->name ?? optional($el)->product_name ?? 'N/A';
-            $key  = $name;
-
+            $el = $detail->inventory->element;
+            $name = $el->name ?? $el->product_name ?? 'Sin nombre';
+            $key = $name;
             $price = $detail->price ?? 0;
             $amount = $detail->amount ?? 0;
             $subtotal = $amount * $price;
 
             if (!isset($grouped[$key])) {
                 $grouped[$key] = [
-                    'producto'   => $name,
-                    'cantidad'   => 0,
-                    'min_price'  => $price,
-                    'max_price'  => $price,
-                    'subtotal'   => 0,
+                    'producto' => $name,
+                    'cantidad' => 0,
+                    'min_price' => $price,
+                    'max_price' => $price,
+                    'subtotal' => 0,
                 ];
             }
             $grouped[$key]['cantidad'] += $amount;
@@ -405,61 +406,154 @@ public function generateSalesProductsPDF(Request $request)
         }
     }
 
-    // Ordenar alfabéticamente por nombre de producto
-    ksort($grouped);
+    ksort($grouped); // Orden alfabético
 
     $puw = PUW::getAppPuw();
+
+    // ========================
+    // CONFIGURACIÓN DEL PDF
+    // ========================
     $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-    $title = 'Reporte de Productos Vendidos - '.$startDateInput.' al '.$endDateInput;
-    $pdf->SetTitle($title);
-    $pdf->SetFont('helvetica', '', 10);
-    $pdf->AddPage();
-    $pdf->SetY(15);
-    $pdf->Cell(0, 0, 'Centro de Formación Agroindustrial "La Angostura" | Campoalegre - Huila', 0, 1, 'C');
-
-    $html  = '<h4 style="text-align:center;"><strong>Bodega:</strong> '.$puw->warehouse->name.' - <strong>Unidad Productiva:</strong> '.$puw->productive_unit->name.'</h4>';
-    $html .= '<h3 style="text-align:center;">'.$title.'</h3>';
     
-    // Tabla con líneas verticales y horizontales reforzadas
-    $html .= '<table style="border-collapse:collapse; width:100%; font-size:10pt; border:1px solid #000;">';
-    $html .= '<thead style="background-color:#f2f2f2; border-bottom:2px solid #000;"><tr>
-        <th style="border:1px solid #000; text-align:center; padding:10px; width:5%;"><strong>#</strong></th>
-        <th style="border:1px solid #000; text-align:right; padding:10px; width:35%;"><strong>Producto</strong></th>
-        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Cantidad</strong></th>
-        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Precio</strong></th>
-        <th style="border:1px solid #000; text-align:center; padding:10px; width:20%;"><strong>Subtotal</strong></th>
-    </tr></thead><tbody>';
+    // Márgenes más equilibrados
+    $pdf->SetMargins(15, 20, 15);
+    $pdf->SetAutoPageBreak(true, 20);
+    $pdf->SetHeaderMargin(10);
+    $pdf->SetFooterMargin(15);
 
-    $total = 0; $i = 0;
+    // Título del documento
+    $pdf->SetTitle('Reporte de Productos Vendidos - ' . $startDateInput . ' al ' . $endDateInput);
+
+    // Fuente principal
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->AddPage();
+
+    // ========================
+    // ENCABEZADO BONITO Y CENTRADO
+    // ========================
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->Cell(0, 10, 'CENTRO DE FORMACIÓN AGROINDUSTRIAL "LA ANGOSTURA"', 0, 1, 'C');
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->Cell(0, 8, 'Campoalegre - Huila', 0, 1, 'C');
+    $pdf->Ln(5);
+
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->Cell(0, 10, 'REPORTE DE PRODUCTOS VENDIDOS', 0, 1, 'C');
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->Cell(0, 8, 'Período: del ' . \Carbon\Carbon::parse($startDateInput)->format('d/m/Y') . ' al ' . \Carbon\Carbon::parse($endDateInput)->format('d/m/Y'), 0, 1, 'C');
+    $pdf->Ln(3);
+
+    $pdf->SetFont('helvetica', '', 10);
+    $pdf->Cell(0, 8, 'Bodega: ' . $puw->warehouse->name . ' | Unidad Productiva: ' . $puw->productive_unit->name, 0, 1, 'C');
+    
+    $pdf->Ln(8);
+
+    // ========================
+    // TABLA CON ESTILO PROFESIONAL Y LÍNEAS FUERTES
+    // ========================
+    $html = '<style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+        th {
+            background-color: #333;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            border: 2px solid #000;
+        }
+        td {
+            padding: 10px 8px;
+            border: 1.5px solid #000;
+            text-align: center;
+        }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .total-row {
+            background-color: #e6e6e6;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+    </style>';
+
+    $html .= '<table>
+        <thead>
+            <tr>
+                <th width="6%">#</th>
+                <th width="44%" class="text-left">PRODUCTO</th>
+                <th width="15%">CANTIDAD</th>
+                <th width="15%">PRECIO</th>
+                <th width="20%">SUBTOTAL</th>
+            </tr>
+        </thead>
+        <tbody>';
+
     if (empty($grouped)) {
-        $html .= '<tr><td colspan="5" style="text-align:center; padding:10px; border:1px solid #000;">No hay datos para el rango seleccionado.</td></tr>';
+        $html .= '<tr><td colspan="5" style="padding:20px; font-style:italic;">No se encontraron ventas en el rango de fechas seleccionado.</td></tr>';
     } else {
+        $i = 1;
+        $totalGeneral = 0;
+
         foreach ($grouped as $item) {
-            $i++;
-            $total += $item['subtotal'];
-            $priceLabel = ($item['min_price'] == $item['max_price'])
+            $totalGeneral += $item['subtotal'];
+            $precioTexto = ($item['min_price'] == $item['max_price'])
                 ? priceFormat($item['min_price'])
                 : priceFormat($item['min_price']) . ' - ' . priceFormat($item['max_price']);
-            $cantidad = number_format($item['cantidad'], 0, '.', ','); // Cantidad sin decimales
+
+            $cantidad = number_format($item['cantidad'], 0, ',', '.');
 
             $html .= "<tr>
-                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$i}</td>
-                <td style='border:1px solid #000; text-align:right; padding:10px;'>{$item['producto']}</td>
-                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$cantidad}</td>
-                <td style='border:1px solid #000; text-align:center; padding:10px;'>{$priceLabel}</td>
-                <td style='border:1px solid #000; text-align:center; padding:10px;'>".priceFormat($item['subtotal'])."</td>
+                <td>{$i}</td>
+                <td class=\"text-left\">{$item['producto']}</td>
+                <td>{$cantidad}</td>
+                <td>{$precioTexto}</td>
+                <td>" . priceFormat($item['subtotal']) . "</td>
             </tr>";
+            $i++;
         }
+
+        // Fila del total general
+        $html .= '<tr class="total-row">
+            <td colspan="4" style="text-align:right; padding-right:15px;">TOTAL GENERAL:</td>
+            <td>' . priceFormat($totalGeneral) . '</td>
+        </tr>';
     }
 
-    $html .= '</tbody><tfoot><tr>
-        <td colspan="4" style="border:1px solid #000; text-align:right; padding:10px; font-weight:bold; background-color:#f2f2f2;">Total General:</td>
-        <td style="border:1px solid #000; text-align:center; padding:10px; font-weight:bold; background-color:#f2f2f2;">'.priceFormat($total).'</td>
-    </tr></tfoot></table>';
+    $html .= '</tbody></table>';
 
+    // ========================
+    // PIE DE PÁGINA
+    // ========================
+    $html .= '<br><br>';
+    $html .= '<table width="100%">
+        <tr>
+            <td width="50%" style="border-top:1px solid #000; padding-top:20px; text-align:center;">
+                <br><br>__________________________<br>
+                Responsable del Reporte
+            </td>
+            <td width="50%" style="border-top:1px solid #000; padding-top:20px; text-align:center;">
+                <br><br>__________________________<br>
+                Revisado por
+            </td>
+        </tr>
+    </table>';
+
+    $html .= '<div style="text-align:center; font-size:9pt; margin-top:20px; color:#555;">
+        Reporte generado el ' . \Carbon\Carbon::now()->format('d/m/Y H:i') . 
+        ' | Sistema de Punto de Venta - La Angostura
+    </div>';
+
+    // Escribir todo el HTML
     $pdf->writeHTML($html, true, false, true, false, '');
-    $filename = 'Reporte_productos_vendidos_'.$startDateInput.'_al_'.$endDateInput.'.pdf';
-    $pdf->Output($filename, 'I');
+
+    // Nombre del archivo
+    $filename = 'Reporte_Productos_Vendidos_' . $startDateInput . '_al_' . $endDateInput . '.pdf';
+    
+    // Salida
+    return $pdf->Output($filename, 'I');
 }
 
 
